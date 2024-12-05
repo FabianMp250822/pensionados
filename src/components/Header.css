@@ -1,0 +1,250 @@
+/* Reset de estilos básicos */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Estilos del header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.header__logo-image {
+  width: 300px;
+  height: auto;
+}
+
+/* Estilos de navegación */
+.nav {
+  display: flex;
+  align-items: center;
+}
+
+.nav__list {
+  display: flex;
+  list-style: none;
+  align-items: center;
+}
+
+.nav__item {
+  position: relative;
+  margin-left: 20px;
+}
+
+.nav__link {
+  text-decoration: none;
+  color: #333333;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 0;
+  transition: color 0.3s;
+}
+
+.nav__link:hover {
+  color: #007bff;
+}
+
+/* Submenú */
+/* Submenú contenedor */
+.nav__item--has-submenu {
+  position: relative;
+}
+
+.nav__item--has-submenu .nav__link {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+/* Ícono para indicar submenú */
+.nav__item--has-submenu .nav__link::after {
+  content: "▼"; /* Flecha hacia abajo */
+  margin-left: 8px;
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.3s ease;
+}
+
+/* Submenú */
+.submenu {
+  position: absolute;
+  top: 100%; /* Alineado con el padre */
+  left: 0;
+  background-color: #ffffff;
+  list-style: none;
+  padding: 10px 0;
+  margin: 5px 0 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #eaeaea;
+  border-radius: 5px;
+  display: none; /* Oculto por defecto */
+  z-index: 1000;
+}
+
+/* Mostrar submenú cuando está activo */
+.nav__item--has-submenu:hover .submenu {
+  display: block;
+}
+
+/* Elementos del submenú */
+.submenu__item {
+  margin: 0;
+  padding: 8px 20px;
+}
+
+.submenu__link {
+  text-decoration: none;
+  font-size: 14px;
+  color: #333;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Hover en los enlaces del submenú */
+.submenu__link:hover {
+  color: #007bff;
+  background-color: #f8f9fa;
+}
+
+/* Animación del ícono */
+.nav__item--has-submenu:hover .nav__link::after {
+  transform: rotate(-180deg); /* Rotación de la flecha */
+}
+
+/* Responsividad del submenú */
+@media (max-width: 768px) {
+  .submenu {
+    position: static;
+    padding-left: 15px;
+    box-shadow: none;
+  }
+}
+
+
+/* Botón de logout */
+.nav__link--button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #333333;
+  padding: 8px 0;
+  transition: color 0.3s;
+}
+
+.nav__link--button:hover {
+  color: #007bff;
+}
+
+/* Botón de menú móvil */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.menu-toggle__bar {
+  width: 100%;
+  height: 2px;
+  background-color: #333333;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+/* Animación del botón de menú móvil */
+.menu-toggle--open .menu-toggle__bar:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.menu-toggle--open .menu-toggle__bar:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle--open .menu-toggle__bar:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  /* Mostrar botón de menú móvil */
+  .menu-toggle {
+    display: flex;
+  }
+
+  /* Ocultar menú de navegación por defecto */
+  .nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100vh;
+    width: 250px;
+    background-color: #ffffff;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 60px 20px;
+    transition: right 0.3s;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+  }
+
+  /* Mostrar menú cuando está abierto */
+  .nav--open {
+    right: 0;
+  }
+
+  .nav__list {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .nav__item {
+    margin: 10px 0;
+    width: 100%;
+  }
+
+  .nav__link,
+  .nav__link--button {
+    width: 100%;
+    text-align: left;
+    font-size: 18px;
+  }
+
+  /* Submenú en móvil */
+  .submenu {
+    position: static;
+    border: none;
+    box-shadow: none;
+    padding-left: 20px;
+  }
+
+  .submenu__item {
+    padding: 5px 0;
+  }
+
+  /* Ocultar submenú por defecto en móvil */
+  .nav__item--has-submenu .submenu {
+    display: none;
+  }
+
+  /* Mostrar submenú cuando está abierto */
+  .nav__item--has-submenu .submenu--open {
+    display: block;
+  }
+}

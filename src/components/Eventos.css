@@ -1,0 +1,101 @@
+.event-container {
+  display: block; /* Cambiado de flex a block para evitar problemas de distribución */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.chart-section {
+  margin-bottom: 20px;
+}
+
+
+/* Estilo de la cabecera y secciones */
+.chart-title {
+  font-size: 1.5rem !important;
+  font-weight: bold !important;
+  margin-bottom: 1rem !important;
+  text-align: center !important; /* Centrado en caso de interferencia */
+}
+
+/* Contenedor para la información del usuario */
+.usuario-info-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* Asegura que las columnas se alineen desde arriba */
+  flex-wrap: wrap; /* Para asegurar que las columnas se ajusten en pantallas pequeñas */
+  gap: 20px; /* Añade espacio entre las columnas */
+}
+
+/* Estilo de las columnas de información */
+.usuario-info-column {
+  flex: 1; /* Cada columna toma el mismo ancho */
+  min-width: 250px; /* Asegura que cada columna tenga al menos 250px de ancho */
+  padding: 0 20px; /* Añade espacio alrededor de las columnas */
+  text-align: left; 
+}
+
+.usuario-info-column div {
+  margin-bottom: 0.5rem; /* Añade un margen entre las líneas */
+}
+
+.usuario-info-column strong {
+  font-weight: bold; /* Asegura que los títulos estén en negrita */
+}
+
+/* Estilo del nombre del usuario */
+.usuario-nombre {
+  font-size: 1.8rem !important;
+  font-weight: bold !important; /* Nombre del usuario en negrita */
+  text-align: center !important; /* Alineado al centro */
+  margin-bottom: 1rem !important;
+  flex-basis: 100% !important; /* Hace que el nombre ocupe toda la fila */
+}
+
+/* Estilo para asegurar que el texto de los valores esté en minúsculas */
+.usuario-info-column div {
+  text-transform: none; /* Asegura que los valores estén en minúsculas */
+}
+
+
+.selector-container {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.selector-label {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.modern-select {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.modern-select:hover {
+  border-color: #80bdff;
+  box-shadow: 0 0 8px rgba(33, 150, 243, 0.25);
+}
+
+.modern-select:focus {
+  border-color: #66afe9;
+  outline: none;
+  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+}

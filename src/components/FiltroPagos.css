@@ -1,0 +1,39 @@
+.filtro-pagos-container {
+  margin: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.filtro-pagos-form {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.pago-card {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+}
+
+.detalles-pago {
+  margin-top: 15px;
+}
+
+.tabla-detalles {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.tabla-detalles th,
+.tabla-detalles td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.tabla-detalles th {
+  background-color: #f2f2f2;
+}
