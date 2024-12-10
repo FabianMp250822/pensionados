@@ -41,7 +41,9 @@ const FormularioInscripcionCliente = () => {
     plazoMeses: 0,
     cuotaMensual: 0,
     grupo: "",
-  });
+    direccion: '', // Nuevo campo
+});
+
 
   const [convenioPagoFile, setConvenioPagoFile] = useState(null);
   const [otrosArchivos, setOtrosArchivos] = useState([
@@ -184,81 +186,98 @@ const FormularioInscripcionCliente = () => {
       }
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      let archivos = {};
 
-      // Subir convenio de pago
-      if (convenioPagoFile) {
-        const storageRef = ref(
-          storage,
-          `convenios/${convenioPagoFile.name}`
+    // Validar que todos los archivos tengan un nombre
+    const archivoSinNombre = otrosArchivos.find(
+        (archivo) => archivo.archivo && !archivo.nombreArchivo.trim()
+    );
+
+    if (archivoSinNombre) {
+        Swal.fire(
+            'Error',
+            `El archivo ${archivoSinNombre.archivo.name || 'sin nombre'} no tiene un nombre asignado. Por favor, ingrese un nombre.`,
+            'error'
         );
-        await uploadBytes(storageRef, convenioPagoFile);
-        const downloadURL = await getDownloadURL(storageRef);
-        archivos['convenioPago'] = downloadURL;
-      }
-
-      // Subir otros archivos
-      for (let i = 0; i < otrosArchivos.length; i++) {
-        const archivoObj = otrosArchivos[i];
-        if (archivoObj.archivo && archivoObj.nombreArchivo) {
-          const storageRef = ref(
-            storage,
-            `otros/${archivoObj.archivo.name}`
-          );
-          await uploadBytes(storageRef, archivoObj.archivo);
-          const downloadURL = await getDownloadURL(storageRef);
-          archivos[archivoObj.nombreArchivo] = downloadURL;
-        }
-      }
-
-      // Guardar en Firestore
-      const dataToSave = { ...formData, archivos };
-      const docRef = await addDoc(
-        collection(db, "nuevosclientes"),
-        dataToSave
-      );
-      console.log(
-        "Cliente registrado con ID: ",
-        docRef.id
-      );
-      Swal.fire(
-        'Éxito',
-        'Cliente registrado exitosamente.',
-        'success'
-      );
-      setFormData({
-        nombres: '',
-        apellidos: '',
-        cedula: '',
-        correo: '',
-        telefonoFijo: '',
-        celular: '',
-        salario: 0,
-        multiplicadorSalario: 1,
-        plazoMeses: 0,
-        cuotaMensual: 0,
-        grupo: "",
-      });
-      setConvenioPagoFile(null);
-      setOtrosArchivos([
-        { nombreArchivo: '', archivo: null }
-      ]);
-    } catch (error) {
-      console.error(
-        "Error al guardar el cliente: ",
-        error
-      );
-      Swal.fire(
-        'Error',
-        'Ocurrió un error al registrar el cliente.',
-        'error'
-      );
+        return;
     }
-  };
+
+    try {
+        let archivos = {};
+
+        // Subir convenio de pago
+        if (convenioPagoFile) {
+            const storageRef = ref(
+                storage,
+                `convenios/${convenioPagoFile.name}`
+            );
+            await uploadBytes(storageRef, convenioPagoFile);
+            const downloadURL = await getDownloadURL(storageRef);
+            archivos['convenioPago'] = downloadURL;
+        }
+
+        // Subir otros archivos
+        for (let i = 0; i < otrosArchivos.length; i++) {
+            const archivoObj = otrosArchivos[i];
+            if (archivoObj.archivo) {
+                const storageRef = ref(
+                    storage,
+                    `otros/${archivoObj.archivo.name}`
+                );
+                await uploadBytes(storageRef, archivoObj.archivo);
+                const downloadURL = await getDownloadURL(storageRef);
+                archivos[archivoObj.nombreArchivo] = downloadURL;
+            }
+        }
+
+        // Guardar en Firestore
+        const dataToSave = { ...formData, archivos }; // La dirección ya está incluida en formData
+        const docRef = await addDoc(
+            collection(db, "nuevosclientes"),
+            dataToSave
+        );
+        console.log(
+            "Cliente registrado con ID: ",
+            docRef.id
+        );
+        Swal.fire(
+            'Éxito',
+            'Cliente registrado exitosamente.',
+            'success'
+        );
+        setFormData({
+            nombres: '',
+            apellidos: '',
+            cedula: '',
+            correo: '',
+            telefonoFijo: '',
+            celular: '',
+            salario: 0,
+            multiplicadorSalario: 1,
+            plazoMeses: 0,
+            cuotaMensual: 0,
+            grupo: "",
+            direccion: '', // Resetear dirección
+        });
+        setConvenioPagoFile(null);
+        setOtrosArchivos([
+            { nombreArchivo: '', archivo: null }
+        ]);
+    } catch (error) {
+        console.error(
+            "Error al guardar el cliente: ",
+            error
+        );
+        Swal.fire(
+            'Error',
+            'Ocurrió un error al registrar el cliente.',
+            'error'
+        );
+    }
+};
+
+
 
   const handleEditarSalario = () => {
     setEditandoSalario(true);
@@ -293,9 +312,18 @@ const FormularioInscripcionCliente = () => {
 
   return (
     <form
-      onSubmit={handleSubmit}
-      className="formulario-inscripcion"
-    >
+  onSubmit={handleSubmit}
+  className="formulario-inscripcion"
+  style={{
+    display: 'flex',
+    
+ 
+    alignItems: 'center',
+ 
+ 
+  }}
+>
+
       <h2>Inscripción de Cliente</h2>
 
       {/* Bloque de salario mínimo y grupo */}
@@ -573,6 +601,19 @@ const FormularioInscripcionCliente = () => {
           style={bootstrapInputStyle}
         />
       </div>
+      <div className="form-group">
+    <label htmlFor="direccion">Dirección:</label>
+    <input
+        type="text"
+        id="direccion"
+        name="direccion"
+        value={formData.direccion}
+        onChange={handleChange}
+        required
+        style={bootstrapInputStyle}
+        placeholder="Ingrese la dirección del cliente"
+    />
+</div>
 
       {/* Nuevos inputs para archivos */}
       <div
@@ -656,11 +697,24 @@ const FormularioInscripcionCliente = () => {
       </div>
 
       <button
-        type="submit"
-        className="submit-button"
-      >
-        Registrar Cliente
-      </button>
+  type="submit"
+  style={{
+    marginTop: '20px', // Espacio superior del botón
+    padding: '10px 15px',
+    backgroundColor: '#007bff',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    width: '100%',
+    maxWidth: '300px', // Limitar el ancho del botón
+    alignSelf: 'center', // Centrar el botón horizontalmente
+  }}
+>
+  Registrar Cliente
+</button>
+
+
     </form>
   );
 };

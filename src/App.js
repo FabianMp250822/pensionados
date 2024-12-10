@@ -12,6 +12,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Ca
 import PagosEspecificos from './components/PagosEspecificos';
 import Contabilidad from './components/Contabilidad';
 import ListaUsuarios from './components/ListaUsuarios';
+import FormularioEdicionUsuario from './components/FormularioEdicionUsuario';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -49,6 +50,7 @@ function App() {
               <Routes> {/* Cambiamos Switch a Routes */}
                 <Route path="/certificaciones" element={<Certificaciones />} />
                 <Route path="/agregarpago" element={<ListaUsuarios />} />
+                <Route path="/editarusuario" element={<FormularioEdicionUsuario />} />
                 <Route path="/consultas" element={<Eventos />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/pagosespecificos" element={<PagosEspecificos />} />

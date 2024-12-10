@@ -127,8 +127,12 @@ const VisorFacturas = ({ usuarioSeleccionado }) => {
     };
   };
   
-
   const obtenerMesDePeriodoPago = (periodoPago) => {
+    // Verifica que periodoPago sea una cadena válida
+    if (!periodoPago || typeof periodoPago !== 'string') {
+      return { mesNumero: '', mesNombre: '' }; // Retorna valores por defecto si no es válido
+    }
+  
     const meses = {
       ene: '01', feb: '02', mar: '03', abr: '04', may: '05', jun: '06',
       jul: '07', ago: '08', sep: '09', sept: '09', oct: '10', nov: '11', dic: '12',
@@ -138,16 +142,18 @@ const VisorFacturas = ({ usuarioSeleccionado }) => {
       jun: 'Junio', jul: 'Julio', ago: 'Agosto', sep: 'Septiembre', sept: 'Septiembre',
       oct: 'Octubre', nov: 'Noviembre', dic: 'Diciembre',
     };
+  
     const regex = /([a-z]{3,4})\.?/gi;
     const matches = periodoPago.toLowerCase().match(regex);
-
+  
     if (matches && matches.length > 0) {
       const mesAbreviado = matches[0].replace('.', '').replace(/[^a-z]/g, '');
       return { mesNumero: meses[mesAbreviado], mesNombre: nombresMeses[mesAbreviado] };
     }
-    return { mesNumero: '', mesNombre: '' };
+    
+    return { mesNumero: '', mesNombre: '' }; // Retorna valores por defecto si no hay coincidencias
   };
-
+  
   useEffect(() => {
     filtrarFacturas();
   }, [añoSeleccionado, mesSeleccionado, facturas]);

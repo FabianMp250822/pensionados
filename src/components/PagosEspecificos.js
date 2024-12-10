@@ -17,6 +17,10 @@ const PagosEspecificos = () => {
   const [orden, setOrden] = useState('desc');
   const [columnaOrden, setColumnaOrden] = useState('total');
 
+  const [filtroFechaCostas, setFiltroFechaCostas] = useState({ mes: '', año: '' });
+  const [filtroFechaRetros, setFiltroFechaRetros] = useState({ mes: '', año: '' });
+  const [filtroFechaProcesos, setFiltroFechaProcesos] = useState({ mes: '', año: '' });
+  
   // Estados para las dependencias y centros de costo
   const [dependencias, setDependencias] = useState([]);
   const [dependenciaSeleccionada, setDependenciaSeleccionada] = useState('');
@@ -107,11 +111,11 @@ const PagosEspecificos = () => {
   };
 
   // Función que realiza el cálculo de los datos y los almacena en Firebase
+
   const calcularDatosEspecificos = async () => {
     const db = getFirestore();
   
     try {
-      // Obtener todos los usuarios
       const usuariosSnapshot = await getDocs(collection(db, 'pensionados'));
       const usuarios = usuariosSnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -122,7 +126,6 @@ const PagosEspecificos = () => {
   
       let resultadosTemp = [];
   
-      // Para cada usuario, obtener los pagos y acumular los totales
       for (const usuario of usuarios) {
         const pagosSnapshot = await getDocs(
           collection(db, 'pensionados', usuario.id, 'pagos')
@@ -135,23 +138,31 @@ const PagosEspecificos = () => {
         let totalProcesos = 0;
         let fechaProcesos = null;
   
+        // Usar un Set para registrar combinaciones únicas de periodoPago y valorNeto
+        const periodosProcesados = new Set();
+  
         pagosSnapshot.docs.forEach((doc) => {
           const pago = doc.data();
   
-          // Verificar si el pago tiene detalles
           if (Array.isArray(pago.detalles)) {
             pago.detalles.forEach((detalle) => {
               const ingreso = Number(detalle.ingresos) || 0;
+              const periodoPago = pago.periodoPago;
+              const key = `${periodoPago}-${ingreso}`; // Clave única para cada combinación de periodo y valor
   
-              if (detalle.nombre === '470-Costas Procesales') {
-                totalCostas += ingreso;
-                fechaCostas = pago.periodoPago || fechaCostas; // Guardar la última fecha válida
-              } else if (detalle.nombre === '785-Retro Mesada Adicional M14') {
-                totalRetros += ingreso;
-                fechaRetros = pago.periodoPago || fechaRetros; // Guardar la última fecha válida
-              } else if (detalle.nombre === '475-Procesos Y Sentencia Judiciales') {
-                totalProcesos += ingreso;
-                fechaProcesos = pago.periodoPago || fechaProcesos; // Guardar la última fecha válida
+              if (!periodosProcesados.has(key)) {
+                periodosProcesados.add(key); // Marcar como procesado
+  
+                if (detalle.nombre === '470-Costas Procesales') {
+                  totalCostas += ingreso;
+                  fechaCostas = periodoPago || fechaCostas;
+                } else if (detalle.nombre === '785-Retro Mesada Adicional M14') {
+                  totalRetros += ingreso;
+                  fechaRetros = periodoPago || fechaRetros;
+                } else if (detalle.nombre === '475-Procesos Y Sentencia Judiciales') {
+                  totalProcesos += ingreso;
+                  fechaProcesos = periodoPago || fechaProcesos;
+                }
               }
             });
           }
@@ -174,14 +185,12 @@ const PagosEspecificos = () => {
   
           resultadosTemp.push(resultadoUsuario);
   
-          // Guardar en Firebase en la colección 'pagocostas'
           await setDoc(doc(db, 'pagocostas', usuario.id), resultadoUsuario);
         }
       }
   
       setResultados(resultadosTemp);
   
-      // Extraer dependencias y centros de costo únicos para los filtros
       const dependenciasUnicas = [
         ...new Set(resultadosTemp.map((resultado) => resultado.pnlDependencia)),
       ].filter(Boolean);
@@ -197,7 +206,6 @@ const PagosEspecificos = () => {
     }
   };
   
-
   useEffect(() => {
     // Al montar el componente, solo obtenemos los datos ya calculados
     buscarDatosEspecificos();
@@ -222,14 +230,33 @@ const PagosEspecificos = () => {
   };
 
   // Filtrar resultados según búsqueda, dependencia y centro de costo
-  const resultadosFiltrados = resultados
+  const formatoFecha = (fecha) => {
+    if (!fecha) return 'N/A';
+  
+    // Busca patrones como "1 jun. 2022 a 30 jun. 2022"
+    const regex = /\d+\s(\w+)\.\s(\d{4})/;
+    const match = fecha.match(regex);
+  
+    if (match) {
+      const [, mes, año] = match; // Extrae el mes y el año
+      return `${mes.charAt(0).toUpperCase() + mes.slice(1)} ${año}`; // Capitaliza el mes
+    }
+  
+    return 'Fecha no válida';
+  };
+
+    const resultadosFiltrados = resultados
     .filter(
       (resultado) =>
         resultado.nombre.toLowerCase().includes(busqueda.toLowerCase()) &&
-        (dependenciaSeleccionada === '' ||
-          resultado.pnlDependencia === dependenciaSeleccionada) &&
-        (centroCostoSeleccionado === '' ||
-          resultado.pnlCentroCosto === centroCostoSeleccionado)
+        (dependenciaSeleccionada === '' || resultado.pnlDependencia === dependenciaSeleccionada) &&
+        (centroCostoSeleccionado === '' || resultado.pnlCentroCosto === centroCostoSeleccionado) &&
+        (filtroFechaCostas.mes === '' || formatoFecha(resultado.fechaCostas).includes(filtroFechaCostas.mes)) &&
+        (filtroFechaCostas.año === '' || formatoFecha(resultado.fechaCostas).includes(filtroFechaCostas.año)) &&
+        (filtroFechaRetros.mes === '' || formatoFecha(resultado.fechaRetros).includes(filtroFechaRetros.mes)) &&
+        (filtroFechaRetros.año === '' || formatoFecha(resultado.fechaRetros).includes(filtroFechaRetros.año)) &&
+        (filtroFechaProcesos.mes === '' || formatoFecha(resultado.fechaProcesos).includes(filtroFechaProcesos.mes)) &&
+        (filtroFechaProcesos.año === '' || formatoFecha(resultado.fechaProcesos).includes(filtroFechaProcesos.año))
     )
     .sort((a, b) => {
       if (columnaOrden === 'nombre') {
@@ -237,27 +264,11 @@ const PagosEspecificos = () => {
           ? a.nombre.localeCompare(b.nombre)
           : b.nombre.localeCompare(a.nombre);
       } else {
-        return orden === 'asc'
-          ? a[columnaOrden] - b[columnaOrden]
-          : b[columnaOrden] - a[columnaOrden];
+        return orden === 'asc' ? a[columnaOrden] - b[columnaOrden] : b[columnaOrden] - a[columnaOrden];
       }
     });
-
-
-    const formatoFecha = (fecha) => {
-      if (!fecha) return 'N/A';
+  
     
-      // Busca patrones como "1 jun. 2022 a 30 jun. 2022"
-      const regex = /\d+\s(\w+)\.\s(\d{4})/;
-      const match = fecha.match(regex);
-    
-      if (match) {
-        const [, mes, año] = match; // Extrae el mes y el año
-        return `${mes.charAt(0).toUpperCase() + mes.slice(1)} ${año}`; // Capitaliza el mes
-      }
-    
-      return 'Fecha no válida';
-    };
     
     
     return (
@@ -278,45 +289,139 @@ const PagosEspecificos = () => {
     
         {/* Filtros */}
         <div className="filtro-contenedor">
-          {/* Selector de dependencia */}
-          <select
-            id="dependencia-select"
-            value={dependenciaSeleccionada}
-            onChange={(e) => setDependenciaSeleccionada(e.target.value)}
-            className="modern-select"
-          >
-            <option value="">Todas las dependencias</option>
-            {dependencias.map((dependencia, index) => (
-              <option key={index} value={dependencia}>
-                {dependencia}
-              </option>
-            ))}
-          </select>
-    
-          {/* Selector de centro de costo */}
-          <select
-            id="centro-costo-select"
-            value={centroCostoSeleccionado}
-            onChange={(e) => setCentroCostoSeleccionado(e.target.value)}
-            className="modern-select"
-          >
-            <option value="">Todos los centros de costo</option>
-            {centrosCosto.map((centro, index) => (
-              <option key={index} value={centro}>
-                {centro}
-              </option>
-            ))}
-          </select>
-    
-          {/* Campo de búsqueda */}
-          <input
-            type="text"
-            placeholder="Buscar por nombre..."
-            value={busqueda}
-            onChange={handleBusquedaChange}
-            className="modern-input buscador-input"
-          />
-        </div>
+  {/* Filtros existentes */}
+  <select
+    id="dependencia-select"
+    value={dependenciaSeleccionada}
+    onChange={(e) => setDependenciaSeleccionada(e.target.value)}
+    className="modern-select"
+  >
+    <option value="">Todas las dependencias</option>
+    {dependencias.map((dependencia, index) => (
+      <option key={index} value={dependencia}>
+        {dependencia}
+      </option>
+    ))}
+  </select>
+
+  <select
+    id="centro-costo-select"
+    value={centroCostoSeleccionado}
+    onChange={(e) => setCentroCostoSeleccionado(e.target.value)}
+    className="modern-select"
+  >
+    <option value="">Todos los centros de costo</option>
+    {centrosCosto.map((centro, index) => (
+      <option key={index} value={centro}>
+        {centro}
+      </option>
+    ))}
+  </select>
+
+  <input
+    type="text"
+    placeholder="Buscar por nombre..."
+    value={busqueda}
+    onChange={handleBusquedaChange}
+    className="modern-input buscador-input"
+  />
+</div>
+
+{/* Nuevos selectores para fechas */}
+<div className="filtros-fechas" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+  <div style={{ flex: 1 }}>
+    <label style={{ fontWeight: 'bold', marginBottom: '5px', display: 'block' }}>Costas Procesales:</label>
+    <div style={{ display: 'flex', gap: '10px' }}>
+      <select
+        className="modern-select"
+        value={filtroFechaCostas.mes}
+        onChange={(e) => setFiltroFechaCostas({ ...filtroFechaCostas, mes: e.target.value })}
+      >
+        <option value="">Mes</option>
+        {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((mes, index) => (
+          <option key={index} value={mes}>
+            {mes}
+          </option>
+        ))}
+      </select>
+      <select
+        className="modern-select"
+        value={filtroFechaCostas.año}
+        onChange={(e) => setFiltroFechaCostas({ ...filtroFechaCostas, año: e.target.value })}
+      >
+        <option value="">Año</option>
+        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((año) => (
+          <option key={año} value={año}>
+            {año}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  <div style={{ flex: 1 }}>
+    <label style={{ fontWeight: 'bold', marginBottom: '5px', display: 'block' }}>Retro Mesada Adicional:</label>
+    <div style={{ display: 'flex', gap: '10px' }}>
+      <select
+        className="modern-select"
+        value={filtroFechaRetros.mes}
+        onChange={(e) => setFiltroFechaRetros({ ...filtroFechaRetros, mes: e.target.value })}
+      >
+        <option value="">Mes</option>
+        {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((mes, index) => (
+          <option key={index} value={mes}>
+            {mes}
+          </option>
+        ))}
+      </select>
+      <select
+        className="modern-select"
+        value={filtroFechaRetros.año}
+        onChange={(e) => setFiltroFechaRetros({ ...filtroFechaRetros, año: e.target.value })}
+      >
+        <option value="">Año</option>
+        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((año) => (
+          <option key={año} value={año}>
+            {año}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  <div style={{ flex: 1 }}>
+    <label style={{ fontWeight: 'bold', marginBottom: '5px', display: 'block' }}>Procesos y Sentencia Judiciales:</label>
+    <div style={{ display: 'flex', gap: '10px' }}>
+      <select
+        className="modern-select"
+        value={filtroFechaProcesos.mes}
+        onChange={(e) => setFiltroFechaProcesos({ ...filtroFechaProcesos, mes: e.target.value })}
+      >
+        <option value="">Mes</option>
+        {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((mes, index) => (
+          <option key={index} value={mes}>
+            {mes}
+          </option>
+        ))}
+      </select>
+      <select
+        className="modern-select"
+        value={filtroFechaProcesos.año}
+        onChange={(e) => setFiltroFechaProcesos({ ...filtroFechaProcesos, año: e.target.value })}
+      >
+        <option value="">Año</option>
+        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((año) => (
+          <option key={año} value={año}>
+            {año}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+</div>
+
+
+
     
         <div className="resultados-lista">
           {resultadosFiltrados.length > 0 ? (

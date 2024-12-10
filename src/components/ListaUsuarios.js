@@ -5,6 +5,7 @@ import { db } from '../firebase/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase/firebaseConfig';
 import './ListaUsuarios.css';
+import ResumenFinanciero from './ResumenFinanciero';
 
 const ListaUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -454,6 +455,7 @@ const ListaUsuarios = () => {
     </div>
   </div>
 )}
+ <ResumenFinanciero usuarios={usuariosFiltrados} />
 
     </div>
   );
