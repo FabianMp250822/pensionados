@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Header.css';
 import { firebaseAuthService } from '../services/firebaseService';
 import Swal from 'sweetalert2';
@@ -6,7 +6,19 @@ import { Link } from 'react-router-dom';
 
 const Header = ({ handleLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [submenuOpen, setSubmenuOpen] = useState(false);
+  const [submenuOpen, setSubmenuOpen] = useState({});
+  const [headerHeight, setHeaderHeight] = useState(0);
+
+  useEffect(() => {
+    const headerElement = document.querySelector('.header');
+    if (headerElement) {
+      setHeaderHeight(headerElement.offsetHeight);
+    }
+  }, []);
+
+  const toggleSubmenu = (menu) => {
+    setSubmenuOpen((prev) => ({ ...prev, [menu]: !prev[menu] }));
+  };
 
   const onLogout = async () => {
     try {
@@ -28,81 +40,72 @@ const Header = ({ handleLogout }) => {
     }
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-
-  const toggleSubmenu = (e) => {
-    e.preventDefault();
-    setSubmenuOpen(!submenuOpen);
-  };
-
   return (
-    <header className="header">
-      {/* Logo */}
-      <div className="header__logo">
-        <img
-          src="https://i.ibb.co/GF3Dkfq/Captura-desde-2024-10-10-12-21-05.png"
-          alt="Día Mundial 2024 Logo"
-          className="header__logo-image"
+    <>
+      <header className="header" style={{ position: 'fixed', top: 0, width: '100%', zIndex: 10 }}>
+        <Link to="/" className="logo">
+          PROMETHEO
+        </Link>
+        <input
+          className="menu-btn"
+          type="checkbox"
+          id="menu-btn"
+          checked={menuOpen}
+          onChange={() => setMenuOpen(!menuOpen)}
         />
-      </div>
-
-      {/* Botón de menú móvil */}
-      <button
-        className={`menu-toggle ${menuOpen ? 'menu-toggle--open' : ''}`}
-        onClick={toggleMenu}
-      >
-        <span className="menu-toggle__bar"></span>
-        <span className="menu-toggle__bar"></span>
-        <span className="menu-toggle__bar"></span>
-      </button>
-
-      {/* Menú de navegación */}
-      <nav className={`nav ${menuOpen ? 'nav--open' : ''}`}>
-        <ul className="nav__list">
-          <li className="nav__item">
-            <Link to="/consultas" className="nav__link" onClick={() => setMenuOpen(false)}>
+        <label className="menu-icon" htmlFor="menu-btn">
+          <span className="navicon"></span>
+        </label>
+        <ul className="menu">
+          <li>
+            <Link to="/consultas" onClick={() => setMenuOpen(false)}>
               Consulta de pagos
             </Link>
           </li>
-          <li className="nav__item">
-            <Link to="/pagosespecificos" className="nav__link" onClick={() => setMenuOpen(false)}>
+          <li>
+            <Link to="/pagosespecificos" onClick={() => setMenuOpen(false)}>
               Consulta Sentencias
             </Link>
           </li>
-          <li className="nav__item nav__item--has-submenu">
-            <a href="#" className="nav__link" onClick={toggleSubmenu}>
+          <li>
+            <a href="#" onClick={() => toggleSubmenu('contabilidad')}>
               Contabilidad
             </a>
-            {submenuOpen && (
+            {submenuOpen['contabilidad'] && (
               <ul className="submenu">
-                <li className="submenu__item">
-                  <Link to="/contabilidad" className="submenu__link" onClick={() => setMenuOpen(false)}>
+                <li>
+                  <Link to="/contabilidad" onClick={() => setMenuOpen(false)}>
                     Agregar cliente
                   </Link>
                 </li>
-                <li className="submenu__item">
-                  <Link to="/agregarpago" className="submenu__link" onClick={() => setMenuOpen(false)}>
+                <li>
+                  <Link to="/agregarpago" onClick={() => setMenuOpen(false)}>
                     Registrar pagos
                   </Link>
                 </li>
-                <li className="submenu__item">
-                  <Link to="/editarusuario" className="submenu__link" onClick={() => setMenuOpen(false)}>
+                <li>
+                  <Link to="/editarusuario" onClick={() => setMenuOpen(false)}>
                     Consultar & Editar
                   </Link>
                 </li>
               </ul>
             )}
           </li>
-          <li className="nav__item nav__item--logout">
-            <button onClick={onLogout} className="nav__link nav__link--button">
+          <li>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                onLogout();
+              }}
+              className="nav__link nav__link--button"
+            >
               Logout
             </button>
           </li>
         </ul>
-      </nav>
-    </header>
+      </header>
+      <div style={{ marginTop: `${headerHeight}px` }}></div>
+    </>
   );
 };
 

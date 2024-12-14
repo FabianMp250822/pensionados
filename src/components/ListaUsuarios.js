@@ -209,7 +209,8 @@ const ListaUsuarios = () => {
   };
 
   return (
-    <div className="lista-clientes">
+    <div className="lista-clientes"
+    >
       <h2>Lista de Usuarios ({usuariosFiltrados.length})</h2>
 
       <div className="buscador">
@@ -301,6 +302,7 @@ const ListaUsuarios = () => {
               borderBottom: '1px solid #ccc',
               display: 'flex',
               justifyContent: 'space-between'
+              
             }}
           >
             <div style={{ flex: '1', borderRight: '1px solid #ccc', paddingRight: '10px' }}>

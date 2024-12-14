@@ -1,0 +1,117 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-contenido {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 1200px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tabla-container {
+    margin-top: 20px;
+    overflow-x: auto;
+  }
+  
+  .tabla-anotaciones {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .tabla-anotaciones th,
+  .tabla-anotaciones td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .tabla-anotaciones th {
+    background: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  .tabla-anotaciones tbody tr:nth-child(odd) {
+    background: #f9f9f9;
+  }
+  
+  .documento-link {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .documento-link:hover {
+    text-decoration: underline;
+  }
+  
+  .boton-adjuntar {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .boton-adjuntar:hover {
+    background: #218838;
+  }
+  
+  .boton-cerrar {
+    margin-top: 20px;
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .boton-cerrar:hover {
+    background: #c82333;
+  }
+  
+  .error {
+    color: #dc3545;
+    font-weight: bold;
+    margin-top: 20px;
+    text-align: center;
+  }
+  .botones-superiores {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 20px;
+    gap: 30px; /* Separación horizontal entre los botones */
+  }
+  
+  .boton-nueva {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .boton-nueva:hover {
+    background-color: #0056b3;
+  }
+  
+  .campo-busqueda {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  

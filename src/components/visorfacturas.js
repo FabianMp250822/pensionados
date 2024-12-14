@@ -162,106 +162,210 @@ const VisorFacturas = ({ usuarioSeleccionado }) => {
 
 
   const handleCertificar = async () => {
-    const tablaTotalesHtml = document.querySelector('.totales').outerHTML;
+    const fechaActual = new Date();
     const logoUrl = "https://dajusticia.com/web/wp-content/uploads/2024/01/logo-dajusticia-8.png";
-    const contenidoCertificacion = `
-      <div id="certificacion-pdf" style="
-        width: 100%; 
-        padding: 20px; 
-        font-family: Arial, sans-serif; 
-        font-size: 10px; 
-        line-height: 1.5; 
-        box-sizing: border-box;
-        background-color: #fff;">
-        
-        <!-- Encabezado -->
-        <div style="margin-bottom: 20px;">
+    
+    // Agrupamos las facturas por año y mes
+    const facturasPorAñoMes = agruparFacturasPorAñoMes();
+  
+    const pdf = new jsPDF('p', 'mm', 'letter'); // Tamaño carta vertical
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+  
+    const mesesOrden = [
+      { nombre: "Enero", valor: "01" },
+      { nombre: "Febrero", valor: "02" },
+      { nombre: "Marzo", valor: "03" },
+      { nombre: "Abril", valor: "04" },
+      { nombre: "Mayo", valor: "05" },
+      { nombre: "Junio", valor: "06" },
+      { nombre: "Julio", valor: "07" },
+      { nombre: "Agosto", valor: "08" },
+      { nombre: "Septiembre", valor: "09" },
+      { nombre: "Octubre", valor: "10" },
+      { nombre: "Noviembre", valor: "11" },
+      { nombre: "Diciembre", valor: "12" }
+    ];
+  
+    const años = Object.keys(facturasPorAñoMes).sort();
+    
+    let primeraPagina = true;
+  
+    for (const año of años) {
+      // Contenedor fuera de la vista
+      const container = document.createElement('div');
+      container.id = 'pdf-container-año';
+      container.style.width = '210mm';
+      container.style.minHeight = '279mm';
+      container.style.boxSizing = 'border-box';
+      container.style.fontFamily = 'Arial, sans-serif';
+      container.style.fontSize = '9px';
+      container.style.backgroundColor = '#fff';
+      container.style.padding = '10px';
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      document.body.appendChild(container);
+  
+      const encabezadoHTML = `
+        <div style="margin-bottom: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <img src="${logoUrl}" alt="Logotipo de la Empresa" style="max-width: 100px;">
+              <img src="${logoUrl}" alt="Logotipo" style="max-width: 80px;">
             </div>
-            <div style="text-align: left; font-size: 10px;">
-             <p style="margin: 0; font-weight: bold;">Dajusticia</p>
-<p style="margin: 0;">Edificio Distrito 90, oficina 5.1, Barranquilla, Atlántico, Colombia</p>
-<p style="margin: 0;">Teléfonos: 300 805 9324, 320 569 8267, (605) 355 45 55, (605) 385 65 05</p>
-<p style="margin: 0;">Correo: soporte@dajusticia.com</p>
-<p style="margin: 0;">www.dajusticia.com</p>
-
+            <div style="text-align: left; font-size: 9px;">
+              <p style="margin: 0; font-weight: bold;">Dajusticia</p>
+              <p style="margin: 0;">Edificio Distrito 90, oficina 5.1, Barranquilla, Atlántico, Colombia</p>
+              <p style="margin: 0;">Teléfonos: 300 805 9324, 320 569 8267, (605) 355 45 55, (605) 385 65 05</p>
+              <p style="margin: 0;">Correo: soporte@dajusticia.com</p>
+              <p style="margin: 0;">www.dajusticia.com</p>
             </div>
           </div>
-          <div style="text-align: center; margin-top: 10px;">
-            <h1 style="font-size: 16px; margin-bottom: 5px;">Estado de Cuenta</h1>
-            <p style="font-size: 12px; margin: 0; color: #555;">Emitido por el Departamento de Contabilidad</p>
-            <p style="font-size: 12px; margin: 0; color: #555;">Fecha de emisión: ${fechaActual.toLocaleDateString()}</p>
+          <div style="text-align: center; margin-top: 5px;">
+            <h1 style="font-size: 12px; margin-bottom: 3px;">Estado de Cuenta - Año ${año}</h1>
+            <p style="font-size: 9px; margin: 0; color: #555;">Emitido por el Departamento de Contabilidad</p>
+            <p style="font-size: 9px; margin: 0; color: #555;">Fecha de emisión: ${fechaActual.toLocaleDateString()}</p>
           </div>
         </div>
+      `;
   
-        <!-- Información del Cliente -->
-        <div style="margin-bottom: 20px; text-align: left;">
-          <p style="margin: 0;"><strong>Nombre del Cliente:</strong> ${usuarioSeleccionado.nombre || "Sin nombre"}</p>
-          <p style="margin: 0;"><strong>Periodo del Informe:</strong> ${fechaInicio.toLocaleDateString()} a ${fechaFin.toLocaleDateString()}</p>
+      const infoClienteHTML = `
+        <div style="margin-bottom: 10px; text-align: left;">
+          <p style="margin:0; font-size:9px;"><strong>Nombre del Cliente:</strong> ${usuarioSeleccionado.nombre || "Sin nombre"}</p>
+          <p style="margin:0; font-size:9px;"><strong>Periodo del Informe:</strong> ${fechaInicio.toLocaleDateString()} a ${fechaFin.toLocaleDateString()}</p>
         </div>
+      `;
   
-        <!-- Tabla de Detalle de Pagos -->
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 14px; margin-bottom: 10px; text-align: left;">Detalle de Pagos Realizados</h2>
-          <table style="
-            width: 100%; 
-            border-collapse: collapse; 
-            font-size: 9px;
-            text-align: left;">
-            <thead>
-              <tr style="background-color: #f2f2f2; border: 1px solid #ddd;">
-                <th style="padding: 5px; border: 1px solid #ddd;">Fecha del Pago</th>
-                <th style="padding: 5px; border: 1px solid #ddd;">Concepto</th>
-                <th style="padding: 5px; border: 1px solid #ddd;">Referencia</th>
-                <th style="padding: 5px; border: 1px solid #ddd;">Método de Pago</th>
-                <th style="padding: 5px; border: 1px solid #ddd;">Monto Pagado</th>
-                <th style="padding: 5px; border: 1px solid #ddd;">Saldo</th>
+      // Calculamos las sumas totales para este año
+      let sumaTotalMontoPagado = 0;
+      let sumaTotalSaldo = 0;
+      mesesOrden.forEach(({ nombre: mesNombre }) => {
+        const datosMes = facturasPorAñoMes[año][mesNombre] || [];
+        datosMes.forEach((pago) => {
+          sumaTotalMontoPagado += parseFloat(pago.montoPagado) || 0;
+          sumaTotalSaldo += parseFloat(pago.saldo) || 0;
+        });
+      });
+  
+      // Creamos una sola tabla para todos los meses
+      let tablaHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:9px; text-align:left;">
+          <thead>
+            <tr style="border:1px solid #ddd; background-color:#f2f2f2;">
+              <th style="border:1px solid #ddd; padding:2px;">Mes</th>
+              <th style="border:1px solid #ddd; padding:2px;">Fecha del Pago</th>
+              <th style="border:1px solid #ddd; padding:2px;">Concepto</th>
+              <th style="border:1px solid #ddd; padding:2px;">Referencia</th>
+              <th style="border:1px solid #ddd; padding:2px;">Método de Pago</th>
+              <th style="border:1px solid #ddd; padding:2px;">Monto Pagado</th>
+              <th style="border:1px solid #ddd; padding:2px;">Saldo</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+  
+      mesesOrden.forEach(({ nombre: mesNombre }) => {
+        const datosMes = facturasPorAñoMes[año][mesNombre] || [];
+        if (datosMes.length > 0) {
+          datosMes.forEach((pago) => {
+            tablaHTML += `
+              <tr>
+                <td style="border:1px solid #ddd; padding:2px;">${mesNombre}</td>
+                <td style="border:1px solid #ddd; padding:2px;">${pago.fechaPago || ''}</td>
+                <td style="border:1px solid #ddd; padding:2px;">${pago.concepto || ''}</td>
+                <td style="border:1px solid #ddd; padding:2px;">${pago.referencia || ''}</td>
+                <td style="border:1px solid #ddd; padding:2px;">${pago.metodoPago || ''}</td>
+                <td style="border:1px solid #ddd; padding:2px;">${formatoMoneda(pago.montoPagado)}</td>
+                <td style="border:1px solid #ddd; padding:2px;">${formatoMoneda(pago.saldo)}</td>
               </tr>
-            </thead>
-            <tbody>
-              ${tablaTotalesHtml}
-            </tbody>
-          </table>
-        </div>
+            `;
+          });
+        } else {
+          tablaHTML += `
+            <tr>
+              <td style="border:1px solid #ddd; padding:2px;">${mesNombre}</td>
+              <td colspan="6" style="border:1px solid #ddd; text-align:center; padding:2px;">
+                No hay pagos registrados en ${mesNombre} ${año}.
+              </td>
+            </tr>
+          `;
+        }
+      });
   
-        <!-- Pie de Página -->
-        <div style="text-align: left;">
-          <p style="margin-bottom: 10px;">
+      // Agregamos una fila final con las sumas totales
+      tablaHTML += `
+          <tr style="background-color:#e0e0e0; font-weight:bold;">
+            <td style="border:1px solid #ddd; padding:2px;" colspan="5">TOTAL</td>
+            <td style="border:1px solid #ddd; padding:2px;">${formatoMoneda(sumaTotalMontoPagado)}</td>
+            <td style="border:1px solid #ddd; padding:2px;">${formatoMoneda(sumaTotalSaldo)}</td>
+          </tr>
+        </tbody>
+      </table>
+      `;
+  
+      const pieHTML = `
+        <div style="text-align: left; margin-top:10px;">
+          <p style="margin-bottom:10px; font-size:9px;">
             <strong>Nota:</strong> Este documento certifica que los pagos indicados han sido registrados correctamente por nuestra institución desde el emisor aprobado FONECA.
           </p>
-          <div style="margin-top: 40px;">
-            <p><strong>Firma Autorizada:</strong></p>
-            <p>____________________________</p>
-            <p style="font-size: 10px; color: #555;">Departamento de Contabilidad</p>
+          <div style="margin-top:20px;">
+            <p style="font-size:9px;"><strong>Firma Autorizada:</strong></p>
+            <p style="font-size:9px;">____________________________</p>
+            <p style="font-size:9px; color:#555;">Departamento de Contabilidad</p>
           </div>
         </div>
-      </div>
-    `;
-
-    // Crear contenedor temporal para convertir en PDF
-    const container = document.createElement('div');
-    container.id = 'pdf-container';
-    container.innerHTML = contenidoCertificacion;
-    document.body.appendChild(container);
-
-    // Capturar el contenido como imagen y generar PDF
-    const pdfElement = document.getElementById('pdf-container');
-    const canvas = await html2canvas(pdfElement, { scale: 2 }); // Ajustar escala para alta calidad
-    const imgData = canvas.toDataURL('image/png');
-
-    // Configurar jsPDF con tamaño ajustable
-    const pdf = new jsPDF('l', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      `;
+  
+      container.innerHTML = encabezadoHTML + infoClienteHTML + tablaHTML + pieHTML;
+  
+      // Convertimos el contenedor a Canvas con escala 1
+      const canvas = await html2canvas(container, { scale: 1 });
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  
+      if (!primeraPagina) {
+        pdf.addPage();
+      }
+      primeraPagina = false;
+  
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+  
+      // Eliminamos el contenedor temporal
+      document.body.removeChild(container);
+    }
+  
+    // Guardamos y descargamos el PDF inmediatamente
     pdf.save(`estado_de_cuenta_${usuarioSeleccionado.nombre || "cliente"}.pdf`);
-
-    // Limpiar contenedor temporal
-    document.body.removeChild(container);
   };
+  
+  
+  // Función que agrupa las facturas por año y mes
+  function agruparFacturasPorAñoMes() {
+    const resultado = {};
+  
+    facturasFiltradas.forEach((factura) => {
+      const { año, periodoPago, detalles, fechaPago, referencia, metodoPago } = factura;
+      const { mesNombre } = obtenerMesDePeriodoPago(periodoPago);
+  
+      if (!resultado[año]) resultado[año] = {};
+      if (!resultado[año][mesNombre]) resultado[año][mesNombre] = [];
+  
+      detalles.forEach((detalle) => {
+        if (detalleSeleccionado.length === 0 || detalleSeleccionado.includes(detalle.nombre)) {
+          resultado[año][mesNombre].push({
+            fechaPago: fechaPago || '',
+            concepto: detalle.nombre || '',
+            referencia: referencia || '',
+            metodoPago: metodoPago || '',
+            montoPagado: detalle.ingresos || 0,
+            saldo: detalle.egresos || 0
+          });
+        }
+      });
+    });
+  
+    return resultado;
+  }
+  
   
   const sumaDetalle = calcularSumaDetalle();
 

@@ -13,12 +13,11 @@ code {
 }
 
 .event-container {
-  display: block; /* Cambiado de flex a block para evitar problemas de distribución */
-  max-width: 1200px;
-  margin: 0 auto;
+
   padding: 20px;
   box-sizing: border-box;
 }
+
 
 .chart-section {
   margin-bottom: 20px;

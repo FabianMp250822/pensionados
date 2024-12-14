@@ -171,46 +171,122 @@ const FormularioEdicionUsuario = () => {
       };
   return (
     <div>
-      <h2>Lista de Usuarios</h2>
-      <input
-        type="text"
-        placeholder="Buscar por nombre o cédula..."
-        value={busqueda}
-        onChange={handleBusqueda}
-      />
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nombres</th>
-            <th>Apellidos</th>
-            <th>Cédula</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuariosFiltrados.map((usuario, index) => (
-            <tr key={usuario.id}>
-              <td>{index + 1}</td>
-              <td>{usuario.nombres}</td>
-              <td>{usuario.apellidos}</td>
-              <td>{usuario.cedula}</td>
-              <td>
-                <button onClick={() => abrirModalEdicion(usuario)}>Editar</button>
+      
+      <div
+  style={{
+    padding: '10px 0', // Baja todo el contenido 10px desde arriba
+  }}
+>
+  <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Lista de Usuarios</h2>
+ 
+  <div
+    style={{
+      maxWidth: '1200px', // Contenedor con ancho máximo
+      margin: '0 auto', // Centrado horizontal
+      backgroundColor: '#f9f9f9',
+      borderRadius: '8px',
+      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      overflow: 'hidden',
+    }}
+  >
+    <input
+    type="text"
+    placeholder="Buscar por nombre o cédula..."
+    value={busqueda}
+    onChange={handleBusqueda}
+    style={{
+      width: '100%',
+      
+      padding: '10px',
+      marginBottom: '20px',
+      border: '1px solid #ccc',
+      borderRadius: '4px',
+      boxSizing: 'border-box',
+    }}
+  />
+    <table
+      style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+      }}
+    >
+      <thead>
+        <tr style={{ backgroundColor: '#007bff', color: '#fff' }}>
+          <th style={{ padding: '10px', textAlign: 'left', fontWeight: 'bold', color: '#000' }}>#</th>
+          <th style={{ padding: '10px', textAlign: 'left', fontWeight: 'bold', color: '#000' }}>Nombres</th>
+          <th style={{ padding: '10px', textAlign: 'left', fontWeight: 'bold', color: '#000' }}>Apellidos</th>
+          <th style={{ padding: '10px', textAlign: 'left', fontWeight: 'bold', color: '#000' }}>Cédula</th>
+          <th style={{ padding: '10px', textAlign: 'center', fontWeight: 'bold', color: '#000' }}>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {usuariosFiltrados.map((usuario, index) => (
+          <tr
+            key={usuario.id}
+            style={{
+              backgroundColor: index % 2 === 0 ? '#f2f2f2' : '#ffffff',
+            }}
+          >
+            <td style={{ padding: '10px', textAlign: 'center' }}>{index + 1}</td>
+            <td style={{ padding: '10px' }}>{usuario.nombres}</td>
+            <td style={{ padding: '10px' }}>{usuario.apellidos}</td>
+            <td style={{ padding: '10px' }}>{usuario.cedula}</td>
+            <td style={{ padding: '10px', textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
                 <button
-                  style={{ marginLeft: '10px', backgroundColor: '#dc3545', color: '#fff' }}
+                  onClick={() => abrirModalEdicion(usuario)}
+                  style={{
+                    padding: '5px 10px',
+                    backgroundColor: '#007bff',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Editar
+                </button>
+                <button
                   onClick={() => eliminarUsuario(usuario.id)}
+                  style={{
+                    padding: '5px 10px',
+                    backgroundColor: '#dc3545',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
                 >
                   Eliminar
                 </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
       {mostrarModalEdicion && (
-  <div className="modal">
+         <div
+         className="modal"
+         style={{
+           position: 'fixed',
+           top: '20%', // Baja el modal al 20% desde la parte superior
+           left: '50%',
+           transform: 'translate(-50%, -20%)', // Centra horizontal y ajusta verticalmente
+           zIndex: 1000,
+           backgroundColor: '#fff',
+           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+           borderRadius: '8px',
+           padding: '20px',
+           maxWidth: '800px',
+           width: '90%',
+         }}
+       >
+  
     <div className="modal-content" style={{ maxWidth: '800px', margin: '0 auto' }}>
       <h3>Editar Usuario</h3>
       <form onSubmit={(e) => { e.preventDefault(); guardarEdicion(); }}>

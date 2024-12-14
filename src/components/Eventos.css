@@ -1,7 +1,5 @@
 .event-container {
-  display: block; /* Cambiado de flex a block para evitar problemas de distribución */
-  max-width: 1200px;
-  margin: 0 auto;
+
   padding: 20px;
   box-sizing: border-box;
 }
@@ -10,54 +8,51 @@
   margin-bottom: 20px;
 }
 
-
 /* Estilo de la cabecera y secciones */
 .chart-title {
   font-size: 1.5rem !important;
   font-weight: bold !important;
   margin-bottom: 1rem !important;
-  text-align: center !important; /* Centrado en caso de interferencia */
+  text-align: center !important;
 }
 
 /* Contenedor para la información del usuario */
 .usuario-info-container {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; /* Asegura que las columnas se alineen desde arriba */
-  flex-wrap: wrap; /* Para asegurar que las columnas se ajusten en pantallas pequeñas */
-  gap: 20px; /* Añade espacio entre las columnas */
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 /* Estilo de las columnas de información */
 .usuario-info-column {
-  flex: 1; /* Cada columna toma el mismo ancho */
-  min-width: 250px; /* Asegura que cada columna tenga al menos 250px de ancho */
-  padding: 0 20px; /* Añade espacio alrededor de las columnas */
-  text-align: left; 
+  flex: 1;
+  min-width: 250px;
+  padding: 0 20px;
+  text-align: left;
 }
 
 .usuario-info-column div {
-  margin-bottom: 0.5rem; /* Añade un margen entre las líneas */
+  margin-bottom: 0.5rem;
 }
 
 .usuario-info-column strong {
-  font-weight: bold; /* Asegura que los títulos estén en negrita */
+  font-weight: bold;
 }
 
 /* Estilo del nombre del usuario */
 .usuario-nombre {
   font-size: 1.8rem !important;
-  font-weight: bold !important; /* Nombre del usuario en negrita */
-  text-align: center !important; /* Alineado al centro */
+  font-weight: bold !important;
+  text-align: center !important;
   margin-bottom: 1rem !important;
-  flex-basis: 100% !important; /* Hace que el nombre ocupe toda la fila */
+  flex-basis: 100% !important;
 }
 
-/* Estilo para asegurar que el texto de los valores esté en minúsculas */
 .usuario-info-column div {
-  text-transform: none; /* Asegura que los valores estén en minúsculas */
+  text-transform: none;
 }
-
 
 .selector-container {
   margin-top: 20px;

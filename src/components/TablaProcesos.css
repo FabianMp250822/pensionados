@@ -1,0 +1,111 @@
+.tabla-procesos-contenedor {
+    font-family: Arial, sans-serif;
+    background: #fff;
+    margin: 20px auto;
+    padding: 20px;
+    width: 100%;
+}
+  
+.titulo {
+    font-size: 28px; 
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #000; 
+    text-align: center;
+}
+  
+.error {
+    color: red;
+    font-size: 18px; 
+    margin-top: 10px;
+}
+  
+.procesos-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 20px; 
+}
+  
+.proceso-card {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+  
+.proceso-header {
+    font-size: 22px; 
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #000; 
+}
+  
+.proceso-detalle {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px;
+    font-size: 18px; 
+    color: #000; 
+}
+  
+.proceso-detalle div {
+    margin-bottom: 10px; 
+}
+  
+.proceso-detalle strong {
+    font-weight: bold;
+    color: #000; 
+}
+  
+@media (max-width: 768px) {
+    .proceso-detalle {
+      grid-template-columns: 1fr; 
+    }
+}
+
+.boton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 5px 5px 0 0;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.boton:hover {
+    background-color: #0056b3;
+}
+
+.boton-editar {
+    background-color: #28a745; 
+}
+
+.boton-editar:hover {
+    background-color: #218838; 
+}
+
+.boton-guardar {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.boton-guardar:hover {
+    background-color: #e0a800;
+}
+
+.boton-cancelar {
+    background-color: #dc3545;
+}
+
+.boton-cancelar:hover {
+    background-color: #c82333;
+}
+
+input {
+    width: 100%;
+    padding: 5px;
+    font-size: 16px;
+}

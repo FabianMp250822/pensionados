@@ -17,7 +17,15 @@ const Contabilidad = () => {
   };
 
   return (
-    <div className="contabilidad-container">
+    <div
+      className="contabilidad-container"
+      style={{
+        maxWidth: '1200px', // Define el ancho máximo
+        margin: '0 auto',   // Centra horizontalmente
+        padding: '20px',    // Añade espacio interno
+        boxSizing: 'border-box',
+      }}
+    >
       <Grid container spacing={2} direction="column">
         <Grid item xs={12}>
           <Grid container spacing={2}>
