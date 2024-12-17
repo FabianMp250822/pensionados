@@ -417,9 +417,24 @@ const TablaProcesos = ({ cedula }) => {
             );
           })}
         </div>
-      ) : (
-        !cargando && <p>No se encontraron procesos para esta cédula.</p>
-      )}
+     ) : (
+      !cargando && (
+        <div className="no-procesos">
+          <p>El cliente no tiene procesos en Prometheus. ¿Desea crear uno?</p>
+          <button
+            className="boton boton-crear-proceso"
+            onClick={() => {
+              // Aquí puedes manejar la acción para crear un nuevo proceso
+              // Por ejemplo, abrir un modal o redirigir a una página de creación
+              alert('Función para crear un proceso');
+            }}
+          >
+            Crear Proceso
+          </button>
+        </div>
+      )
+    )}
+    
 
 {modalProceso && (
         <DemandantesModal

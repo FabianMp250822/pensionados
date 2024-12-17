@@ -91,6 +91,31 @@ const Header = ({ handleLogout }) => {
               </ul>
             )}
           </li>
+          {/* Nuevo Menú "Reportes" */}
+          <li>
+            <a href="#" onClick={() => toggleSubmenu('reportes')}>
+              Reportes
+            </a>
+            {submenuOpen['reportes'] && (
+              <ul className="submenu">
+                <li>
+                  <Link to="/consulta-procesos" onClick={() => setMenuOpen(false)}>
+                    Procesos
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/reportes/pagos" onClick={() => setMenuOpen(false)}>
+                    Pagos
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/reportes/general" onClick={() => setMenuOpen(false)}>
+                    General
+                  </Link>
+                </li>
+              </ul>
+            )}
+          </li>
           <li>
             <button
               onClick={() => {

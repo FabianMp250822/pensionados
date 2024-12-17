@@ -13,6 +13,7 @@ import PagosEspecificos from './components/PagosEspecificos';
 import Contabilidad from './components/Contabilidad';
 import ListaUsuarios from './components/ListaUsuarios';
 import FormularioEdicionUsuario from './components/FormularioEdicionUsuario';
+import ProcesosTablaCompleta from './components/ProcesosTablaCompleta';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -52,6 +53,7 @@ function App() {
                 <Route path="/agregarpago" element={<ListaUsuarios />} />
                 <Route path="/editarusuario" element={<FormularioEdicionUsuario />} />
                 <Route path="/consultas" element={<Eventos />} />
+                <Route path="/consulta-procesos" element={<ProcesosTablaCompleta />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/pagosespecificos" element={<PagosEspecificos />} />
                 <Route path="/contabilidad" element={<Contabilidad />} />
@@ -63,6 +65,6 @@ function App() {
       </div>
     </Router>
   );
-}
+} 
 
 export default App;

@@ -38,22 +38,34 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
       if (data.error) {
         throw new Error(data.error);
       }
-  
-      // Corregir y ordenar las anotaciones
+
+      // Corregir y transformar las anotaciones
       const anotacionesCorregidas = data.map((anotacion) => ({
         ...anotacion,
         fecha: transformarFecha(anotacion.fecha),
         fecha_limite: transformarFecha(anotacion.fecha_limite),
         detalle: corregirTexto(anotacion.detalle),
-        archivo_url: anadirPrefijoRuta(anotacion.archivo_url), // Usar la función corregida
+        archivo_url: anadirPrefijoRuta(anotacion.archivo_url),
       }));
-  
+
+      // Ordenar las anotaciones
       anotacionesCorregidas.sort((a, b) => {
         const fechaA = convertirAFormatoOrdenable(a.fecha); // `YYYY-MM-DD`
         const fechaB = convertirAFormatoOrdenable(b.fecha); // `YYYY-MM-DD`
-        return fechaA.localeCompare(fechaB); // Ordenar por cadenas comparables
+
+        if (fechaA < fechaB) return -1;
+        if (fechaA > fechaB) return 1;
+
+        // Si las fechas son iguales, ordenar por hora_limite
+        const horaA = convertirHoraLimite(a.hora_limite);
+        const horaB = convertirHoraLimite(b.hora_limite);
+
+        if (horaA < horaB) return -1;
+        if (horaA > horaB) return 1;
+
+        return 0;
       });
-  
+
       setAnotaciones(anotacionesCorregidas);
       setAnotacionesFiltradas(anotacionesCorregidas); // Inicialmente no hay filtro
     } catch (err) {
@@ -63,7 +75,22 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
       setCargando(false);
     }
   };
-  
+
+  const convertirHoraLimite = (hora) => {
+    if (!hora) return '00:00';
+    
+    const [time, modifier] = hora.toLowerCase().split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+    
+    if (modifier === 'pm' && hours !== 12) {
+      hours += 12;
+    }
+    if (modifier === 'am' && hours === 12) {
+      hours = 0;
+    }
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
 
   const anadirPrefijoRuta = (ruta) => {
     if (!ruta) return null;
@@ -77,7 +104,6 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
     // Si la ruta no contiene el prefijo, agregarlo
     return `${baseUrl}${ruta.replace(/^\/?informes2/, 'informes2')}`; 
   };
-  
 
   const transformarFecha = (fecha) => {
     if (!fecha) return null;
@@ -153,17 +179,15 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
   
     input.click(); // Simular clic para abrir el selector de archivos
   };
-  
+
   const handleEditarAnotacion = (anotacion) => {
     setAnotacionParaEditar(anotacion); // Guardar la anotación para editar
     setMostrarNuevoModal(true); // Abrir el modal
   };
-  
+
   const handleNuevaAnotacion = () => {
     setMostrarNuevoModal(true);
   };
-
- 
 
   if (!numRegistro) return null;
 
@@ -172,27 +196,26 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
     setAnotacionParaEditar(null); // Limpiar la anotación seleccionada
     fetchAnotaciones(numRegistro); // Recargar las anotaciones después de agregar/editar
   };
-  
-  
+
   const handleEliminarAnotacion = async (auto) => {
     const confirmacion = window.confirm(
       '¿Estás seguro de que deseas eliminar esta anotación? Esta acción no se puede deshacer.'
     );
-  
+
     if (!confirmacion) return; // Si el usuario cancela, salir de la función
-  
+
     try {
       // Enviar datos al backend
       const formData = new FormData();
       formData.append('action', 'deleteAnotacion');
       formData.append('auto', auto); // ID único de la anotación
       formData.append('num_registro', numRegistro);
-  
+
       const response = await fetch('https://appdajusticia.com/anotaciones.php', {
         method: 'POST',
         body: formData,
       });
-  
+
       const data = await response.json();
       if (data.success) {
         alert('Anotación eliminada correctamente.');
@@ -205,8 +228,6 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
       alert('Error inesperado al eliminar la anotación.');
     }
   };
-  
-  
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -219,7 +240,7 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
         {!cargando && !error && (
           <>
             <div className="botones-superiores">
-            <button className="boton boton-nueva" onClick={handleNuevaAnotacion}>
+              <button className="boton boton-nueva" onClick={handleNuevaAnotacion}>
                 Agregar Nueva Anotación
               </button>
               <input
@@ -266,23 +287,23 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
                             </a>
                           ) : (
                             <button
-                            className="boton-adjuntar"
-                            style={{
-                              backgroundColor: "#28a745",
-                              color: "white",
-                              border: "none",
-                              padding: "5px 10px",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                            }}
-                            onClick={() => handleAdjuntarArchivo(anotacion.auto)}
-                          >
-                            Adjuntar
-                          </button>
+                              className="boton-adjuntar"
+                              style={{
+                                backgroundColor: "#28a745",
+                                color: "white",
+                                border: "none",
+                                padding: "5px 10px",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                              }}
+                              onClick={() => handleAdjuntarArchivo(anotacion.auto)}
+                            >
+                              Adjuntar
+                            </button>
                           )}
                         </td>
                         <td>
-                        <button
+                          <button
                             style={{
                               backgroundColor: '#007bff',
                               color: 'white',
@@ -309,7 +330,7 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
                           >
                             Eliminar
                           </button>
-      </td>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -327,12 +348,12 @@ const AnotacionesModal = ({ numRegistro, onClose }) => {
           </button>
         </div>
         {mostrarNuevoModal && (
-        <NuevaAnotacionModal
-        numRegistro={numRegistro}
-        onClose={cerrarNuevoModal}
-        anotacion={anotacionParaEditar}
-        />
-      )}
+          <NuevaAnotacionModal
+            numRegistro={numRegistro}
+            onClose={cerrarNuevoModal}
+            anotacion={anotacionParaEditar}
+          />
+        )}
       </div>
     </div>
   );
