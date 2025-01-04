@@ -14,6 +14,11 @@ import Contabilidad from './components/Contabilidad';
 import ListaUsuarios from './components/ListaUsuarios';
 import FormularioEdicionUsuario from './components/FormularioEdicionUsuario';
 import ProcesosTablaCompleta from './components/ProcesosTablaCompleta';
+import ComentariosTabla from './components/resumentTablas';
+import PagosBusqueda from './components/resumentTablas';
+import ConsultaPagosfucntion from './components/resumentTablas';
+import ConsultaPagosContrario from './components/resumenTablaContrario';
+import ConsultaCompartidos from './components/consultacompartidos';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -54,6 +59,9 @@ function App() {
                 <Route path="/editarusuario" element={<FormularioEdicionUsuario />} />
                 <Route path="/consultas" element={<Eventos />} />
                 <Route path="/consulta-procesos" element={<ProcesosTablaCompleta />} />
+                <Route path="/consulta-pagos" element={<ConsultaPagosfucntion />} />
+                <Route path="/consulta-pagos-Contraios" element={<ConsultaPagosContrario />} />
+                <Route path="/consulta-compartidos" element={<ConsultaCompartidos />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/pagosespecificos" element={<PagosEspecificos />} />
                 <Route path="/contabilidad" element={<Contabilidad />} />

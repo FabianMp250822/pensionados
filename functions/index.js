@@ -1,10 +1,104 @@
 const functions = require("firebase-functions");
 const nodemailer = require("nodemailer");
+const admin = require("firebase-admin");
 
-// CORS manual o uso de la librería cors
-// Opción 1: Añadir encabezados manualmente
-// Opción 2: Instalar librería cors (npm install cors)
-// y usarla, pero aquí haremos manualmente.
+// Asegúrate de haber inicializado admin, por ejemplo:
+admin.initializeApp();
+
+exports.consultaPagos = functions.https.onRequest(async (req, res) => {
+  // Manejo de CORS para solicitudes preflight (OPTIONS)
+  if (req.method === "OPTIONS") {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(204).send("");
+  }
+
+  // Configurar encabezados CORS para solicitudes reales
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+
+  try {
+    console.log("Solicitud recibida:", req.body);
+
+    const {año, detalle} = req.body;
+    if (!año || !detalle) {
+      console.error("Parámetros faltantes:", {año, detalle});
+      return res.status(400).json({
+        ok: false,
+        message: "Faltan parámetros 'año' y/o 'detalle'.",
+      });
+    }
+
+    console.log(`Consultando pagos para el año ${año} y detalle "${detalle}"`);
+
+    // Consulta Firestore por año
+    const snapshot = await admin
+        .firestore()
+        .collectionGroup("pagos")
+        .where("año", "==", año)
+        .get();
+
+    console.log("Documentos encontrados:", snapshot.size);
+
+    // eslint-disable-next-line max-len
+    // Filtrar documentos que contienen el detalle especificado en el array 'detalles'
+    const filteredDocs = snapshot.docs.filter((docSnap) => {
+      const data = docSnap.data();
+      console.log("Documento leído:", data);
+      const detallesArray = data.detalles || [];
+      return detallesArray.some((item) => item.nombre === detalle);
+    });
+
+    console.log("Documentos después del filtrado:", filteredDocs.length);
+
+    if (filteredDocs.length === 0) {
+      return res.status(404).json({
+        ok: false,
+        // eslint-disable-next-line max-len
+        message: `No se encontraron documentos con el año ${año} y detalle "${detalle}".`,
+      });
+    }
+
+    // Obtener información adicional de cada pago
+    const resultados = await Promise.all(
+        filteredDocs.map(async (docSnap) => {
+          const data = docSnap.data();
+          const pensionadoRef = docSnap.ref.parent.parent;
+          let nombrePensionado = null;
+
+          if (pensionadoRef) {
+            const pensionadoDoc = await pensionadoRef.get();
+            if (pensionadoDoc.exists) {
+              nombrePensionado =
+              pensionadoDoc.data().empleado || "Nombre no definido";
+            }
+          }
+
+          return {
+            idPago: docSnap.id,
+            nombrePensionado,
+            ...data,
+          };
+        }),
+    );
+
+    console.log("Resultados enviados:", resultados);
+
+    return res.status(200).json({
+      ok: true,
+      data: resultados,
+    });
+  } catch (error) {
+    console.error("Error inesperado:", error);
+    return res.status(500).json({
+      ok: false,
+      message: "Error interno al consultar los pagos.",
+      error: error.message,
+    });
+  }
+});
+
 
 const transporterNotificaciones = nodemailer.createTransport({
   host: "smtp.hostinger.com",

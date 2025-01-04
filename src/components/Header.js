@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import './Header.css';
 import { firebaseAuthService } from '../services/firebaseService';
 import Swal from 'sweetalert2';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 const Header = ({ handleLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [submenuOpen, setSubmenuOpen] = useState({});
+  const [activeSubmenu, setActiveSubmenu] = useState(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
   useEffect(() => {
@@ -15,10 +15,6 @@ const Header = ({ handleLogout }) => {
       setHeaderHeight(headerElement.offsetHeight);
     }
   }, []);
-
-  const toggleSubmenu = (menu) => {
-    setSubmenuOpen((prev) => ({ ...prev, [menu]: !prev[menu] }));
-  };
 
   const onLogout = async () => {
     try {
@@ -40,12 +36,16 @@ const Header = ({ handleLogout }) => {
     }
   };
 
+  const toggleSubmenu = (submenu) => {
+    setActiveSubmenu(prev => (prev === submenu ? null : submenu));
+  };
+
   return (
     <>
       <header className="header" style={{ position: 'fixed', top: 0, width: '100%', zIndex: 10 }}>
-        <Link to="/" className="logo">
+        <NavLink to="/" className="logo">
           PROMETHEO
-        </Link>
+        </NavLink>
         <input
           className="menu-btn"
           type="checkbox"
@@ -58,60 +58,69 @@ const Header = ({ handleLogout }) => {
         </label>
         <ul className="menu">
           <li>
-            <Link to="/consultas" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/consultas" onClick={() => setMenuOpen(false)}>
               Consulta de pagos
-            </Link>
+            </NavLink>
           </li>
           <li>
-            <Link to="/pagosespecificos" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/pagosespecificos" onClick={() => setMenuOpen(false)}>
               Consulta Sentencias
-            </Link>
+            </NavLink>
           </li>
           <li>
             <a href="#" onClick={() => toggleSubmenu('contabilidad')}>
               Contabilidad
             </a>
-            {submenuOpen['contabilidad'] && (
-              <ul className="submenu">
-                <li>
-                  <Link to="/contabilidad" onClick={() => setMenuOpen(false)}>
-                    Agregar cliente
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/agregarpago" onClick={() => setMenuOpen(false)}>
-                    Registrar pagos
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/editarusuario" onClick={() => setMenuOpen(false)}>
-                    Consultar & Editar
-                  </Link>
-                </li>
-              </ul>
+            {activeSubmenu === 'contabilidad' && (
+             <ul className="submenu">
+             <li>
+               <NavLink to="/contabilidad" onClick={() => setMenuOpen(false)}>
+                 Agregar cliente
+               </NavLink>
+             </li>
+             <li>
+               <NavLink to="/agregarpago" onClick={() => setMenuOpen(false)}>
+                 Registrar pagos
+               </NavLink>
+             </li>
+             <li>
+               <NavLink to="/editarusuario" onClick={() => setMenuOpen(false)}>
+                 Consultar & Editar
+               </NavLink>
+             </li>
+           </ul>
             )}
           </li>
-          {/* Nuevo Menú "Reportes" */}
           <li>
             <a href="#" onClick={() => toggleSubmenu('reportes')}>
               Reportes
             </a>
-            {submenuOpen['reportes'] && (
+            {activeSubmenu === 'reportes' && (
               <ul className="submenu">
                 <li>
-                  <Link to="/consulta-procesos" onClick={() => setMenuOpen(false)}>
+                  <NavLink to="/consulta-procesos" onClick={() => setMenuOpen(false)} className={({ isActive }) => (isActive ? "active-link" : "")}>
                     Procesos
-                  </Link>
+                  </NavLink>
                 </li>
                 <li>
-                  <Link to="/reportes/pagos" onClick={() => setMenuOpen(false)}>
-                    Pagos
-                  </Link>
+                  <NavLink to="/consulta-pagos" onClick={() => setMenuOpen(false)} className={({ isActive }) => (isActive ? "active-link" : "")}>
+                    Consultar Asociaciones
+                  </NavLink>
                 </li>
                 <li>
-                  <Link to="/reportes/general" onClick={() => setMenuOpen(false)}>
+                  <NavLink to="/consulta-pagos-Contraios" onClick={() => setMenuOpen(false)} className={({ isActive }) => (isActive ? "active-link" : "")}>
+                    Consultar sin asociaciones
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/consulta-compartidos" onClick={() => setMenuOpen(false)} className={({ isActive }) => (isActive ? "active-link" : "")}>
+                    Consultar compartidos
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/reportes/general" onClick={() => setMenuOpen(false)} className={({ isActive }) => (isActive ? "active-link" : "")}>
                     General
-                  </Link>
+                  </NavLink>
                 </li>
               </ul>
             )}
@@ -122,7 +131,7 @@ const Header = ({ handleLogout }) => {
                 setMenuOpen(false);
                 onLogout();
               }}
-              className="nav__link nav__link--button"
+              className="nav__NavLink nav__NavLink--button" 
             >
               Logout
             </button>
@@ -135,3 +144,6 @@ const Header = ({ handleLogout }) => {
 };
 
 export default Header;
+
+
+// /consulta-pagos-Contraios

@@ -163,22 +163,85 @@ const ProcesosTablaCompleta = () => {
 
   const exportarAExcel = () => {
     const wb = utils.book_new();
-    const data = procesos.map((proceso) => ({
-      '# Registro': proceso.num_registro,
-      'Fecha Creación': proceso.fecha_creacion,
-      'Estado': proceso.estado,
-      Demandantes:
-        demandantes[proceso.num_registro]?.map((d) => d.nombre_demandante).join(', ') || '',
-    }));
+    const data = [];
+
+    procesos.forEach((proceso) => {
+        const demandantesData = demandantes[proceso.num_registro] || [];
+
+        demandantesData.forEach((demandante) => {
+            data.push({
+                '# Registro': proceso.num_registro,
+                'Fecha Creación': proceso.fecha_creacion,
+                '# Carpeta': proceso.num_carpeta,
+                'Despacho': proceso.despacho,
+                '# Radicado Inicial': proceso.num_radicado_ini,
+                'Fecha Radicado Inicial': proceso.fecha_radicado_ini,
+                'Radicado Tribunal': proceso.radicado_tribunal,
+                'Magistrado': proceso.magistrado,
+                'Jurisdicción': proceso.jurisdiccion,
+                'Clase Proceso': proceso.clase_proceso,
+                'Estado': proceso.estado,
+                'Identidad Clientes': proceso.identidad_clientes,
+                'Nombres Demandante': proceso.nombres_demandante,
+                'Nombres Demandado': proceso.nombres_demandado,
+                'Negocio': proceso.negocio,
+                'Identidad Abogados': proceso.identidad_abogados,
+                'Nombres Apoderado': proceso.nombres_apoderado,
+                '# Radicado Último': proceso.num_radicado_ult,
+                'Radicado Corte': proceso.radicado_corte,
+                'Magistrado Corte': proceso.magistrado_corte,
+                'Casación': proceso.casacion,
+                'Nombre Demandante': demandante.nombre_demandante,
+                'Documento Demandante': demandante.identidad_demandante,
+                'Teléfonos Demandante': demandante.telefonos,
+                'Dirección Demandante': demandante.direccion,
+                'Correo Demandante': demandante.correo,
+            });
+        });
+
+        if (demandantesData.length === 0) {
+            data.push({
+                '# Registro': proceso.num_registro,
+                'Fecha Creación': proceso.fecha_creacion,
+                '# Carpeta': proceso.num_carpeta,
+                'Despacho': proceso.despacho,
+                '# Radicado Inicial': proceso.num_radicado_ini,
+                'Fecha Radicado Inicial': proceso.fecha_radicado_ini,
+                'Radicado Tribunal': proceso.radicado_tribunal,
+                'Magistrado': proceso.magistrado,
+                'Jurisdicción': proceso.jurisdiccion,
+                'Clase Proceso': proceso.clase_proceso,
+                'Estado': proceso.estado,
+                'Identidad Clientes': proceso.identidad_clientes,
+                'Nombres Demandante': proceso.nombres_demandante,
+                'Nombres Demandado': proceso.nombres_demandado,
+                'Negocio': proceso.negocio,
+                'Identidad Abogados': proceso.identidad_abogados,
+                'Nombres Apoderado': proceso.nombres_apoderado,
+                '# Radicado Último': proceso.num_radicado_ult,
+                'Radicado Corte': proceso.radicado_corte,
+                'Magistrado Corte': proceso.magistrado_corte,
+                'Casación': proceso.casacion,
+                'Nombre Demandante': '',
+                'Documento Demandante': '',
+                'Teléfonos Demandante': '',
+                'Dirección Demandante': '',
+                'Correo Demandante': '',
+            });
+        }
+    });
+
     const ws = utils.json_to_sheet(data);
     utils.book_append_sheet(wb, ws, 'Procesos');
     const wbout = write(wb, { bookType: 'xlsx', type: 'array' });
     saveAs(new Blob([wbout]), 'Procesos.xlsx');
-  };
+};
 
+  
+  
   return (
     <div className="tabla-procesos-completa-contenedor">
-      <h1 className="titulo">Tbla de procesos y demandantes</h1>
+      <h1 className="titulo">Tbla de procesos y demandante</h1>
       <div className="filtros">
         <input
           type="text"

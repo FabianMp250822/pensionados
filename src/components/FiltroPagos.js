@@ -174,7 +174,7 @@ const VisorFacturas = () => {
             const { mesNombre } = obtenerMesDePeriodoPago(factura.periodoPago);
             return (
               <div key={factura.id} id={`factura-${factura.id}`} className="factura" style={{ marginBottom: '20px' }}>
-                <h3>Factura de {mesNombre} {factura.año}</h3>
+                <h3>Bolante de pago  {mesNombre} {factura.año}</h3>
                 <p>Periodo de Pago: {factura.periodoPago} - Valor Neto: {factura.valorNeto}</p>
                 <table className="tabla-detalles">
                   <thead>
