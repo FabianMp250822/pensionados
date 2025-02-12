@@ -7,13 +7,13 @@ const pensionesSlice = createSlice({
     pensiones: [],
     loading: false,
     error: null,
+    parrisData: null, // <-- Agregamos el nuevo campo en el estado
   },
   reducers: {
     setUsuarioSeleccionado: (state, action) => {
       state.usuarioSeleccionado = action.payload;
     },
     setPensiones: (state, action) => {
-
       state.pensiones = action.payload;
     },
     setLoading: (state, action) => {
@@ -22,10 +22,19 @@ const pensionesSlice = createSlice({
     setError: (state, action) => {
       state.error = action.payload;
     },
+    setParrisData: (state, action) => {
+      // <-- Nuevo reducer para guardar los datos de Parris
+      state.parrisData = action.payload;
+    },
   },
 });
 
-
-export const { setUsuarioSeleccionado, setPensiones, setLoading, setError } = pensionesSlice.actions;
+export const { 
+  setUsuarioSeleccionado, 
+  setPensiones, 
+  setLoading, 
+  setError,
+  setParrisData // <-- Exporta esta acción
+} = pensionesSlice.actions;
 
 export default pensionesSlice.reducer;

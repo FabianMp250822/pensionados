@@ -43,9 +43,14 @@ const Header = ({ handleLogout }) => {
   return (
     <>
       <header className="header" style={{ position: 'fixed', top: 0, width: '100%', zIndex: 10 }}>
-        <NavLink to="/" className="logo">
-          PROMETHEO
-        </NavLink>
+      <NavLink to="/" className="logo">
+  <img 
+    src="https://firebasestorage.googleapis.com/v0/b/pensionados-d82b2.appspot.com/o/Captura%20desde%202025-02-12%2014-38-01.png?alt=media&token=85350e0f-d5fd-45fa-a7bd-8764d34c123b"
+    alt="Logo" 
+    style={{ width: '220px', height: 'auto' }}
+  />
+</NavLink>
+
         <input
           className="menu-btn"
           type="checkbox"
@@ -118,6 +123,11 @@ const Header = ({ handleLogout }) => {
                   </NavLink>
                 </li>
                 <li>
+                  <NavLink to="/consulta-nopagos" onClick={() => setMenuOpen(false)} className={({ isActive }) => (isActive ? "active-link" : "")}>
+                    NO pagos
+                  </NavLink>
+                </li>
+                <li>
                   <NavLink to="/reportes/general" onClick={() => setMenuOpen(false)} className={({ isActive }) => (isActive ? "active-link" : "")}>
                     General
                   </NavLink>
@@ -126,7 +136,7 @@ const Header = ({ handleLogout }) => {
             )}
           </li>
           <li>
-            <button
+            <NavLink
               onClick={() => {
                 setMenuOpen(false);
                 onLogout();
@@ -134,7 +144,7 @@ const Header = ({ handleLogout }) => {
               className="nav__NavLink nav__NavLink--button" 
             >
               Logout
-            </button>
+            </NavLink>
           </li>
         </ul>
       </header>
@@ -146,4 +156,3 @@ const Header = ({ handleLogout }) => {
 export default Header;
 
 
-// /consulta-pagos-Contraios

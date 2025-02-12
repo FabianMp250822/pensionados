@@ -4,17 +4,20 @@ import DemandantesModal from './DemandantesModal';
 import AnotacionesModal from './anotaciones';
 import AnexosModal from './AnexosModal';
 
-
-
 const TablaProcesos = ({ cedula }) => {
   const [procesos, setProcesos] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
-  const [modalProceso, setModalProceso] = useState(null); 
+  const [modalProceso, setModalProceso] = useState(null);
   const [enEdicion, setEnEdicion] = useState({});
   const [valoresEditados, setValoresEditados] = useState({});
   const [modalAnotaciones, setModalAnotaciones] = useState(null);
-  const [modalAnexos, setModalAnexos] = useState(null); 
+  const [modalAnexos, setModalAnexos] = useState(null);
+
+  // Estado para la cédula ingresada manualmente
+  const [cedulaManual, setCedulaManual] = useState('');
+
+  // Si se recibe una cédula vía contexto, se ejecuta la búsqueda automáticamente.
   useEffect(() => {
     if (cedula) {
       handleBuscar(cedula);
@@ -22,22 +25,20 @@ const TablaProcesos = ({ cedula }) => {
   }, [cedula]);
 
   const handleBuscar = async (cedulaBuscar) => {
+    if (!cedulaBuscar) return;
+
     setCargando(true);
     setError(null);
 
     try {
       const response = await fetch(`https://appdajusticia.com/procesos.php?cedula=${cedulaBuscar}`);
-
       if (!response.ok) {
         throw new Error('Error en la respuesta del servidor');
       }
-
       const data = await response.json();
-
       if (data.error) {
         throw new Error(data.error);
       }
-
       setProcesos(data);
     } catch (err) {
       console.error(err);
@@ -72,7 +73,7 @@ const TablaProcesos = ({ cedula }) => {
   };
 
   const handleChange = (num_registro, campo, valor) => {
-    setValoresEditados((prev) => ({
+    setValoresEditados(prev => ({
       ...prev,
       [num_registro]: {
         ...prev[num_registro],
@@ -95,7 +96,7 @@ const TablaProcesos = ({ cedula }) => {
       const response = await fetch('https://appdajusticia.com/procesos.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ num_registro, cambios }), // Enviar num_registro en lugar de id
+        body: JSON.stringify({ num_registro, cambios }),
       });
   
       const data = await response.json();
@@ -103,8 +104,8 @@ const TablaProcesos = ({ cedula }) => {
         throw new Error(data.error);
       }
   
-      setProcesos((prev) =>
-        prev.map((proc) =>
+      setProcesos(prev =>
+        prev.map(proc =>
           proc.num_registro === num_registro ? { ...proc, ...cambios } : proc
         )
       );
@@ -114,45 +115,63 @@ const TablaProcesos = ({ cedula }) => {
       alert("Error al guardar los cambios: " + err.message);
     }
   };
-  
+
   const handleVerDemandantes = (proceso) => {
-    setModalProceso(proceso); // Abrir el modal con el proceso seleccionado
+    setModalProceso(proceso);
   };
 
   const handleCloseModal = () => {
-    setModalProceso(null); // Cerrar el modal
+    setModalProceso(null);
   };
-
 
   const handleVerAnotaciones = (numRegistro) => {
-    setModalAnotaciones(numRegistro); // Abrir el modal de anotaciones con el número de registro
+    setModalAnotaciones(numRegistro);
   };
 
-  
-
   const handleCloseAnotacionesModal = () => {
-    setModalAnotaciones(null); // Cerrar el modal de anotaciones
+    setModalAnotaciones(null);
   };
 
   const handleVerAnexos = (numRegistro) => {
-    setModalAnexos(numRegistro); // Abrir el modal de anexos con el número de registro
+    setModalAnexos(numRegistro);
   };
 
   const handleCloseAnexosModal = () => {
-    setModalAnexos(null); // Cerrar el modal de anexos
+    setModalAnexos(null);
   };
+
   return (
     <div className="tabla-procesos-contenedor">
-      <h1 className="titulo">Procesos para el cliente {cedula}</h1>
+      {/* Búsqueda manual: el input y el botón siempre se muestran */}
+      <div className="buscador">
+        <div></div>
+        <div></div>
+        <div className="buscador-input">
+          <input 
+            type="text" 
+            placeholder="Ingrese cédula" 
+            value={cedulaManual} 
+            onChange={(e) => setCedulaManual(e.target.value)}
+          />
+        </div>
+        <div className="buscador-boton">
+          <button onClick={() => handleBuscar(cedulaManual)}>Buscar</button>
+        </div>
+      </div>
+
+      {/* El título varía según se reciba o no la cédula */}
+      <h1 className="titulo">
+        {cedula ? `Procesos para el cliente ${cedula}` : 'Consulta de Procesos'}
+      </h1>
 
       {cargando && <p>Cargando datos...</p>}
       {error && <p className="error">{error}</p>}
 
-      {!cargando && procesos.length > 0 ? (
+      {(!cargando && procesos.length > 0) ? (
         <div className="procesos-container">
           {procesos.map((proceso) => {
             const modoEdicion = enEdicion[proceso.num_registro];
-            const valores = modoEdicion ? valoresEditados[proceso.num_registro] || {} : proceso;
+            const valores = modoEdicion ? (valoresEditados[proceso.num_registro] || {}) : proceso;
 
             return (
               <div key={proceso.num_registro} className="proceso-card">
@@ -160,250 +179,36 @@ const TablaProcesos = ({ cedula }) => {
                 <div className="proceso-detalle">
                   <div>
                     <strong>Fecha Creación:</strong>
-                    {modoEdicion ? 
+                    {modoEdicion ? (
                       <input 
                         value={valores.fecha_creacion || ''} 
                         onChange={(e) => handleChange(proceso.num_registro, 'fecha_creacion', e.target.value)}
-                      /> 
-                      : proceso.fecha_creacion}
-                  </div>
-                  <div>
-                    <strong># Carpeta:</strong>
-                    {modoEdicion ?
-                      <input
-                        value={valores.num_carpeta || ''}
-                        onChange={(e) => handleChange(proceso.num_registro, 'num_carpeta', e.target.value)}
                       />
-                      : proceso.num_carpeta}
+                    ) : (
+                      proceso.fecha_creacion
+                    )}
                   </div>
-                  <div>
-                    <strong># Carpeta 2:</strong>
-                    {modoEdicion ?
-                      <input
-                        value={valores.num_carpeta2 || ''}
-                        onChange={(e) => handleChange(proceso.num_registro, 'num_carpeta2', e.target.value)}
-                      />
-                      : proceso.num_carpeta2}
-                  </div>
-                  <div>
-                    <strong>Despacho:</strong>
-                    {modoEdicion ?
-                      <input
-                        value={valores.despacho || ''}
-                        onChange={(e) => handleChange(proceso.num_registro, 'despacho', e.target.value)}
-                      />
-                      : proceso.despacho}
-                  </div>
-                  <div>
-                    <strong># Radicado Inicial:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.num_radicado_ini || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'num_radicado_ini', e.target.value)}
-                      /> 
-                      : proceso.num_radicado_ini}
-                  </div>
-                  <div>
-                    <strong>Fecha Radicado Inicial:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.fecha_radicado_ini || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'fecha_radicado_ini', e.target.value)}
-                      /> 
-                      : proceso.fecha_radicado_ini}
-                  </div>
-                  <div>
-                    <strong>Radicado Tribunal:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.radicado_tribunal || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'radicado_tribunal', e.target.value)}
-                      /> 
-                      : proceso.radicado_tribunal}
-                  </div>
-                  <div>
-                    <strong>Magistrado:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.magistrado || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'magistrado', e.target.value)}
-                      /> 
-                      : proceso.magistrado}
-                  </div>
-                  <div>
-                    <strong>Jurisdicción:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.jurisdiccion || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'jurisdiccion', e.target.value)}
-                      /> 
-                      : proceso.jurisdiccion}
-                  </div>
-                  <div>
-                    <strong>Clase de Proceso:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.clase_proceso || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'clase_proceso', e.target.value)}
-                      /> 
-                      : proceso.clase_proceso}
-                  </div>
-                  <div>
-                    <strong>Estado:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.estado || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'estado', e.target.value)}
-                      /> 
-                      : proceso.estado}
-                  </div>
-                  <div>
-                    <strong>Sentencia Juzgado:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.sentencia_juzgado || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'sentencia_juzgado', e.target.value)}
-                      /> 
-                      : proceso.sentencia_juzgado}
-                  </div>
-                  <div>
-                    <strong>Sentencia Tribunal:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.sentencia_tribunal || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'sentencia_tribunal', e.target.value)}
-                      /> 
-                      : proceso.sentencia_tribunal}
-                  </div>
-                  <div>
-                    <strong>Identidad Clientes:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.identidad_clientes || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'identidad_clientes', e.target.value)}
-                      /> 
-                      : proceso.identidad_clientes}
-                  </div>
-                  <div>
-                    <strong>Nombres Demandante:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.nombres_demandante || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'nombres_demandante', e.target.value)}
-                      /> 
-                      : proceso.nombres_demandante}
-                  </div>
-                  <div>
-                    <strong>Identidad Demandado:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.identidad_demandado || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'identidad_demandado', e.target.value)}
-                      /> 
-                      : proceso.identidad_demandado}
-                  </div>
-                  <div>
-                    <strong>Nombres Demandado:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.nombres_demandado || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'nombres_demandado', e.target.value)}
-                      /> 
-                      : proceso.nombres_demandado}
-                  </div>
-                  <div>
-                    <strong>Negocio:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.negocio || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'negocio', e.target.value)}
-                      /> 
-                      : proceso.negocio}
-                  </div>
-                  <div>
-                    <strong>Identidad Abogados:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.identidad_abogados || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'identidad_abogados', e.target.value)}
-                      /> 
-                      : proceso.identidad_abogados}
-                  </div>
-                  <div>
-                    <strong>Nombres Apoderado:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.nombres_apoderado || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'nombres_apoderado', e.target.value)}
-                      /> 
-                      : proceso.nombres_apoderado}
-                  </div>
-                  <div>
-                    <strong># Radicado Último:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.num_radicado_ult || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'num_radicado_ult', e.target.value)}
-                      /> 
-                      : proceso.num_radicado_ult}
-                  </div>
-                  <div>
-                    <strong>Radicado Corte:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.radicado_corte || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'radicado_corte', e.target.value)}
-                      /> 
-                      : proceso.radicado_corte}
-                  </div>
-                  <div>
-                    <strong>Magistrado Corte:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.magistrado_corte || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'magistrado_corte', e.target.value)}
-                      /> 
-                      : proceso.magistrado_corte}
-                  </div>
-                  <div>
-                    <strong>Casación:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.casacion || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'casacion', e.target.value)}
-                      /> 
-                      : proceso.casacion}
-                  </div>
-                  <div>
-                    <strong>Descripción:</strong>
-                    {modoEdicion ? 
-                      <input 
-                        value={valores.descripcion || ''} 
-                        onChange={(e) => handleChange(proceso.num_registro, 'descripcion', e.target.value)}
-                      /> 
-                      : proceso.descripcion}
-                  </div>
+                  {/* Aquí se pueden agregar el resto de los campos */}
                 </div>
                 <div className="botones-container">
-                <button
-                      className="boton boton-ver-demandantes"
-                      onClick={() => handleVerDemandantes(proceso)}
-                    >
-                      Ver Demandantes
-                    </button>
-                    <button
-                  className="boton boton-ver-anotaciones"
-                  onClick={() => handleVerAnotaciones(proceso.num_registro)}
-                >
-                  Anotaciones
-                </button>
-                <button
+                  <button
+                    className="boton boton-ver-demandantes"
+                    onClick={() => handleVerDemandantes(proceso)}
+                  >
+                    Ver Demandantes
+                  </button>
+                  <button
+                    className="boton boton-ver-anotaciones"
+                    onClick={() => handleVerAnotaciones(proceso.num_registro)}
+                  >
+                    Anotaciones
+                  </button>
+                  <button
                     className="boton boton-ver-anexos"
                     onClick={() => handleVerAnexos(proceso.num_registro)}
                   >
                     Anexos
                   </button>
-
                   {modoEdicion ? (
                     <>
                       <button className="boton boton-guardar" onClick={() => handleGuardar(proceso.num_registro)}>Guardar</button>
@@ -417,47 +222,32 @@ const TablaProcesos = ({ cedula }) => {
             );
           })}
         </div>
-     ) : (
-      !cargando && (
-        <div className="no-procesos">
-          <p>El cliente no tiene procesos en Prometheus. ¿Desea crear uno?</p>
-          <button
-            className="boton boton-crear-proceso"
-            onClick={() => {
-              // Aquí puedes manejar la acción para crear un nuevo proceso
-              // Por ejemplo, abrir un modal o redirigir a una página de creación
-              alert('Función para crear un proceso');
-            }}
-          >
-            Crear Proceso
-          </button>
-        </div>
-      )
-    )}
-    
+      ) : (
+        // Si no se encontraron procesos y se recibió la cédula, se muestra el bloque "no-procesos"
+        !cargando && cedula && (
+          <div className="no-procesos">
+            <p>El cliente no tiene procesos en Prometheus. ¿Desea crear uno?</p>
+            <button
+              className="boton boton-crear-proceso"
+              onClick={() => alert('Función para crear un proceso')}
+            >
+              Crear Proceso
+            </button>
+          </div>
+        )
+      )}
 
-{modalProceso && (
-        <DemandantesModal
-          proceso={modalProceso}
-          onClose={handleCloseModal}
-        />
+      {modalProceso && (
+        <DemandantesModal proceso={modalProceso} onClose={handleCloseModal} />
       )}
       {modalAnotaciones && (
-        <AnotacionesModal
-          numRegistro={modalAnotaciones} // Pasar el número de registro al modal
-          onClose={handleCloseAnotacionesModal}
-        />
+        <AnotacionesModal numRegistro={modalAnotaciones} onClose={handleCloseAnotacionesModal} />
       )}
-       {modalAnexos && (
-        <AnexosModal
-          numRegistro={modalAnexos} // Pasar el número de registro al modal
-          onClose={handleCloseAnexosModal}
-        />
+      {modalAnexos && (
+        <AnexosModal numRegistro={modalAnexos} onClose={handleCloseAnexosModal} />
       )}
     </div>
   );
 };
 
 export default TablaProcesos;
-
-

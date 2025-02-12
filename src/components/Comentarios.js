@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
-import { setUsuarioSeleccionado, setPensiones, setLoading, setError } from '../redux/pensionesSlice';
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs
+} from 'firebase/firestore';
+import {
+  setUsuarioSeleccionado,
+  setPensiones,
+  setLoading,
+  setError,
+  setParrisData 
+} from '../redux/pensionesSlice';
 import './Comentarios.css';
 
 const Comentarios = () => {
@@ -19,14 +31,14 @@ const Comentarios = () => {
     try {
       const pensionadosCollection = collection(db, 'pensionados');
       const snapshot = await getDocs(pensionadosCollection);
-  
-      const usuariosFirestore = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        const nombreFormateado = formatearNombre(data.empleado || 'Sin Nombre'); // Aplica la función
+
+      const usuariosFirestore = snapshot.docs.map((docSnapshot) => {
+        const data = docSnapshot.data();
+        const nombreFormateado = formatearNombre(data.empleado || 'Sin Nombre'); 
         return {
-          id: doc.id,
+          id: docSnapshot.id,
           nombre: nombreFormateado,
-          documento: data.documento,
+          documento: data.documento,        
           centroCosto: data.centroCosto || 'Sin centro de costo',
           dependencia: data.dependencia || 'Sin dependencia',
           empresa: data.empresa || 'Sin empresa',
@@ -38,17 +50,20 @@ const Comentarios = () => {
           pnlCentroCosto: data.pnlCentroCosto || 'Sin centro de costo',
         };
       });
-  
+
       // Obtener valores únicos para los selectores
       const dependenciasUnicas = [
         ...new Set(
-          usuariosFirestore
-            .map((usuario) => usuario.pnlDependencia?.split('-').slice(1).join('-') || 'Sin dependencia')
+          usuariosFirestore.map((usuario) =>
+            usuario.pnlDependencia?.split('-').slice(1).join('-') || 'Sin dependencia'
+          )
         ),
       ].filter(Boolean);
-  
-      const centrosCostoUnicos = [...new Set(usuariosFirestore.map((usuario) => usuario.pnlCentroCosto))].filter(Boolean);
-  
+
+      const centrosCostoUnicos = [
+        ...new Set(usuariosFirestore.map((usuario) => usuario.pnlCentroCosto))
+      ].filter(Boolean);
+
       setUsuarios(usuariosFirestore);
       setDependencias(dependenciasUnicas);
       setCentrosCosto(centrosCostoUnicos);
@@ -56,30 +71,51 @@ const Comentarios = () => {
       console.error('Error al obtener usuarios:', error);
     }
   };
-  
+
   const formatearNombre = (nombreCompleto) => {
     // Expresión regular para capturar el formato esperado
     const regex = /^([\w\sÁÉÍÓÚáéíóúÑñ]+)\s([\w\sÁÉÍÓÚáéíóúÑñ]+)\s\((C\.C\.\s[\d]+)\)$/;
     const match = nombreCompleto.match(regex);
-  
+
     if (match) {
       const [_, apellidos, nombres, documento] = match;
-      // Retornar el nombre reordenado
       return `${nombres.trim()} ${apellidos.trim()} (${documento})`;
     }
-  
-    // Si no coincide con el formato esperado, retornar el nombre original
     return nombreCompleto;
   };
-  
+
   useEffect(() => {
     obtenerUsuariosDesdeFirestore();
   }, []);
 
+  // ----------------------------------------------------
+  // Función para cargar datos de la colección "parris"
+  // ----------------------------------------------------
+  const cargarDatosParris = async (usuario) => {
+    try {
+      const docRef = doc(db, 'parris', usuario.documento.trim());
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const datosParris = docSnap.data();
+        console.log('Datos Parris:', datosParris);
+        dispatch(setParrisData(datosParris));
+      } else {
+        console.log('No se encontró información en parris para el documento:', usuario.documento);
+        dispatch(setParrisData(null));
+      }
+    } catch (error) {
+      console.error('Error al obtener datos de parris:', error);
+      dispatch(setParrisData(null));
+    }
+  };
+
+  // Seleccionar usuario
   const seleccionarUsuario = (usuario) => {
     setUsuarioSeleccionadoId(usuario.id);
     dispatch(setUsuarioSeleccionado(usuario));
     cargarPensiones(usuario);
+    cargarDatosParris(usuario);
   };
 
   const cargarPensiones = async (usuario) => {
@@ -88,7 +124,10 @@ const Comentarios = () => {
       const pagosRef = collection(db, 'pensionados', usuario.id, 'pagos');
       const pagosSnapshot = await getDocs(pagosRef);
 
-      const pensiones = pagosSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const pensiones = pagosSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
       dispatch(setPensiones(pensiones));
       dispatch(setLoading(false));
     } catch (error) {
@@ -106,22 +145,13 @@ const Comentarios = () => {
       (centroCostoSeleccionado === '' || usuario.pnlCentroCosto === centroCostoSeleccionado)
   );
 
-  // Función para descargar los IDs como JSON
-  const descargarJson = () => {
-    const ids = usuarios.map((usuario) => usuario.id);
-    const jsonContent = JSON.stringify(ids, null, 2); // Formato legible con indentación
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'ids.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // Si quisieras un botón que "dispare" la búsqueda en vez de hacerlo en tiempo real,
+  // podrías almacenar el valor de busquedaInput en un state distinto y asignarlo a "busqueda"
+  // sólo cuando se haga clic en el botón. Pero en este ejemplo, seguirá siendo inmediato.
 
   return (
     <div className="buscador-usuarios-container">
-      <h2>🔍 Buscar Usuarios</h2>
+      <h4>Administrar Usuarios</h4>
 
       <div className="filtro-contenedor">
         {/* Selector de dependencia */}
@@ -157,19 +187,19 @@ const Comentarios = () => {
         {/* Input de búsqueda */}
         <input
           type="text"
-          placeholder="Buscar por nombre..."
+          placeholder="Buscador"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="modern-input buscador-input"
         />
+
+        {/* Botón de búsqueda (opcional) */}
+       
       </div>
 
       <p className="contador-usuarios">
         Total de usuarios encontrados: {usuariosFiltrados.length}
       </p>
-
-      {/* Botón para descargar IDs como JSON */}
-      {/* <button onClick={descargarJson}>Descargar IDs como JSON</button> */}
 
       {/* Lista de usuarios */}
       <div className="lista-usuarios">

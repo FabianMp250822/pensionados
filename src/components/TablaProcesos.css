@@ -109,3 +109,36 @@ input {
     padding: 5px;
     font-size: 16px;
 }
+.buscador {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columnas de igual ancho */
+    gap: 10px; /* Espacio entre todas las columnas */
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .buscador-input {
+    grid-column: 3; /* Ubicado en la tercera columna */
+    /* Opcional: si deseas más espacio, puedes agregar padding-right */
+    padding-right: 30px;
+  }
+  
+  .buscador-boton {
+    grid-column: 4; /* Ubicado en la cuarta columna */
+    /* Agrega un margen a la izquierda para separar del input */
+    margin-left: 60px;
+  }
+  
+  /* Estilos opcionales para el input y el botón */
+  .buscador input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  
+  .buscador button {
+    width: 100%;
+    padding: 8px;
+    cursor: pointer;
+  }
+  

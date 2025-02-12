@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const functions = require("firebase-functions");
 const nodemailer = require("nodemailer");
 const admin = require("firebase-admin");
@@ -380,3 +381,48 @@ functions.https.onRequest(async (req, res) => {
   }
 });
 
+exports.obtenerPensionadosConDependencia = functions.https.onRequest(async (req, res) => {
+  try {
+    // Valor de dependencia1 que se usará para filtrar
+    const valorDependencia = "V3-GUAJIRA PENSIONADOS";
+
+    // Referencia a la colección 'pensionados'
+    const pensionadosRef = admin.firestore().collection("pensionados");
+
+    // Consulta para obtener los pensionados con el valor de dependencia1 especificado
+    const querySnapshot = await pensionadosRef.where("dependencia1", "==", valorDependencia).get();
+
+    // Array para almacenar los datos de los pensionados
+    const pensionados = [];
+
+    // Iterar sobre los documentos encontrados
+    for (const doc of querySnapshot.docs) {
+      const pensionadoData = doc.data();
+
+      // Obtener la subcolección 'pagos' de cada pensionado
+      const pagosSnapshot = await doc.ref.collection("pagos").get();
+      const pagos = pagosSnapshot.docs.map((pagoDoc) => ({
+        id: pagoDoc.id,
+        ...pagoDoc.data(),
+      }));
+
+      // Agregar los datos del pensionado y sus pagos al array
+      pensionados.push({
+        id: doc.id,
+        ...pensionadoData,
+        pagos: pagos,
+      });
+    }
+
+    // Enviar la respuesta con los datos de los pensionados
+    res.status(200).json({
+      data: pensionados,
+    });
+  } catch (error) {
+    console.error("Error al obtener los pensionados:", error);
+    res.status(500).json({
+      error: "Error al obtener los datos de los pensionados",
+      message: error.message,
+    });
+  }
+});

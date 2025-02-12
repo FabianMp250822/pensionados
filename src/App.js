@@ -19,6 +19,8 @@ import PagosBusqueda from './components/resumentTablas';
 import ConsultaPagosfucntion from './components/resumentTablas';
 import ConsultaPagosContrario from './components/resumenTablaContrario';
 import ConsultaCompartidos from './components/consultacompartidos';
+import ConsultaNopagos from './components/Consultanopagos';
+import SubirExcel from './admin/cargarNuevosDatos';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -62,10 +64,12 @@ function App() {
                 <Route path="/consulta-pagos" element={<ConsultaPagosfucntion />} />
                 <Route path="/consulta-pagos-Contraios" element={<ConsultaPagosContrario />} />
                 <Route path="/consulta-compartidos" element={<ConsultaCompartidos />} />
+                <Route path="/consulta-nopagos" element={<ConsultaNopagos />} />
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/pagosespecificos" element={<PagosEspecificos />} />
                 <Route path="/contabilidad" element={<Contabilidad />} />
-                <Route path="/" element={<Eventos />} /> {/* Ruta por defecto */}
+                <Route path="/" element={<Eventos />} /> {/* Ruta por defecto  SubirExcel */}
+                <Route path="/cargadatos" element={<SubirExcel />} />
               </Routes>
             </main>
           </>

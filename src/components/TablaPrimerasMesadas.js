@@ -205,20 +205,16 @@ const TablaPrimerasMesadas = () => {
       <button className="boton-descargar" onClick={handleGeneratePDF}>Descargar PDF</button>
       <div ref={printRef} className="tabla-primeras-mesadas">
         <h1 className="certificado-titulo">Certificado de Mesadas Pensionales</h1>
+        <h4 className="certificado-titulo">DAJUSTICIA SAS</h4>
         <p className="certificado-fecha">Fecha de emisión: {fechaCertificado}</p>
 
         {usuarioSeleccionado && fechaInicioPension ? (
           <div className="certificado-texto">
-            <p>
-              Certificamos que el señor <strong>{usuarioSeleccionado.nombre}</strong>, identificado con cédula de
-              ciudadanía No. <strong>{usuarioSeleccionado.cedula}</strong>, se encuentra pensionado
-              desde el <strong>1 de {fechaInicioPension.mes} de {fechaInicioPension.año}</strong>.
-            </p>
-            <p>
-              En virtud de las disposiciones legales vigentes y la información contenida en nuestra base de datos, 
-              se hace constar que las mesadas pensionales correspondientes a los meses de enero y diciembre de cada 
-              año, así como las variaciones respecto al año anterior, han sido pagadas según se detalla a continuación:
-            </p>
+        <p>
+  Se certifica que, de acuerdo con la información y documentación suministrada y verificada, la persona&nbsp;<strong>{usuarioSeleccionado.nombre}</strong>, identificada con cédula de ciudadanía N°&nbsp;<strong>{usuarioSeleccionado.documento}</strong>, se encuentra reconocida como pensionado(a) de ELECTRICARIBE S.A. E.S.P. (sustituida procesalmente por FIDUPREVISORA S.A., como administradora y vocera del Patrimonio Autónomo Fondo Nacional del Pasivo Pensional y Prestacional de la Electrificadora del Caribe S.A. E.S.P. - FONECA).  Su pensión fue reconocida el {fechaInicioPension ? `${fechaInicioPension.mes} de ${fechaInicioPension.año}` : " [Fecha de reconocimiento de la pensión]"}. A continuación, se detallan los valores anuales de su mesada pensional registrados desde {fechaInicioPension && fechaInicioPension.año ? fechaInicioPension.año : "el año inicial"}:
+</p>
+
+           
           </div>
         ) : (
           <p className="certificado-texto">Cargando datos del pensionado...</p>
@@ -248,8 +244,13 @@ const TablaPrimerasMesadas = () => {
         </table>
 
         <p className="certificado-firma">
-          Este certificado se expide a solicitud de la parte interesada para los fines legales y 
-          administrativos a los que haya lugar.
+        Que, de conformidad con las normas vigentes y Convención Colectiva de Trabajo, la pensión de jubilación se compartió con el Instituto de Seguros Sociales (hoy Colpensiones) a partir del (día) de (mes) de (año) en los siguientes términos:
+{/* Año:
+Pensión de Jubilación año ():
+ Pensión de Vejez año ():
+Mayor valor mesada: $  */}
+<br />
+Este certificado se expide a solicitud de la parte interesada para los fines legales y administrativos a los que haya lugar.
         </p>
       </div>
     </div>
