@@ -251,6 +251,7 @@ const GraficoPensiones = () => {
 
   const sumarReclamos = (rows) => rows.reduce((acc, row) => acc + row.reclamoAcumulado, 0);
 
+  // Función para renderizar una tabla con una fila final de total, agregando la columna Observación
   const renderTabla = (rows, tituloTotal) => {
     const totalReclamo = sumarReclamos(rows);
     return (
@@ -260,6 +261,7 @@ const GraficoPensiones = () => {
             <th>Año</th>
             <th>Mesada Enero</th>
             <th>Mesada Diciembre</th>
+            <th>Observación</th>
             <th>Proyección ISS</th>
             <th>Mesada Sin Reajuste</th>
             <th>Mesada Reajustada</th>
@@ -273,6 +275,7 @@ const GraficoPensiones = () => {
               <td>{row.year}</td>
               <td>{formatearMoneda(row.mesadaEne)}</td>
               <td>{formatearMoneda(row.mesadaDic)}</td>
+              <td>{row.observation}</td>
               <td>{formatearMoneda(row.proyeccionISS)}</td>
               <td>{formatearMoneda(row.mesadaSinReajuste)}</td>
               <td>{formatearMoneda(row.mesadaReajustada)}</td>
@@ -281,7 +284,7 @@ const GraficoPensiones = () => {
             </tr>
           ))}
           <tr>
-            <td colSpan={7} style={{ textAlign: 'right', fontWeight: 'bold' }}>
+            <td colSpan={8} style={{ textAlign: 'right', fontWeight: 'bold' }}>
               {tituloTotal}
             </td>
             <td style={{ fontWeight: 'bold' }}>{formatearMoneda(totalReclamo)}</td>
