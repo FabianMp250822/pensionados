@@ -30,6 +30,7 @@ const RelacionSalariosGrafica = () => {
   const { pensiones } = useSelector((state) => state.pensiones);
   const [anoSeleccionado, setAnoSeleccionado] = useState('');
   const [datosGrafica, setDatosGrafica] = useState(null);
+  const [cambiosMesada, setCambiosMesada] = useState([]);
 
   // Procesar los datos según el año seleccionado
   const procesarDatos = (ano) => {
@@ -60,6 +61,20 @@ const RelacionSalariosGrafica = () => {
     });
 
     setDatosGrafica(datosPorMes);
+
+    // Calcular promedio de mesadas (descartando los 0) y definir umbral
+    const mesadasValidas = datosPorMes
+      .filter(d => d.mesada > 0)
+      .map(d => d.mesada);
+    if (mesadasValidas.length > 0) {
+      const promedio = mesadasValidas.reduce((acc, val) => acc + val, 0) / mesadasValidas.length;
+      const umbral = promedio * 0.7; // Umbral definido como el 70% del promedio
+      // Filtrar aquellos meses con mesada inferior al umbral
+      const cambios = datosPorMes.filter(d => d.mesada > 0 && d.mesada < umbral);
+      setCambiosMesada(cambios);
+    } else {
+      setCambiosMesada([]);
+    }
   };
 
   // Generar los datos para la gráfica
@@ -114,7 +129,11 @@ const RelacionSalariosGrafica = () => {
 
       <div style={{ marginBottom: '20px' }}>
         <label>Año:</label>
-        <select value={anoSeleccionado} onChange={(e) => setAnoSeleccionado(e.target.value)} className="modern-select">
+        <select
+          value={anoSeleccionado}
+          onChange={(e) => setAnoSeleccionado(e.target.value)}
+          className="modern-select"
+        >
           <option value="">Seleccione un año</option>
           {Object.keys(salariosMinimos).map((ano) => (
             <option key={ano} value={ano}>
@@ -125,7 +144,38 @@ const RelacionSalariosGrafica = () => {
       </div>
 
       {datosGrafica ? (
-        <Bar data={generarDatosDelGrafico()} />
+        <>
+          <Bar data={generarDatosDelGrafico()} />
+
+          {/* Tabla de cambios en la mesada pensional */}
+          {cambiosMesada.length > 0 && (
+            <div style={{ marginTop: '30px' }}>
+              <h3>Cambios en la Mesada Pensional</h3>
+              <table border="1" cellPadding="8" style={{ borderCollapse: 'collapse', width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Mes</th>
+                    <th>Mesada (COP)</th>
+                    <th>Egresos (COP)</th>
+                    <th>Valor Ajustado (COP)</th>
+                    <th>Salarios Equivalentes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cambiosMesada.map((item) => (
+                    <tr key={item.mes}>
+                      <td>{item.mes}</td>
+                      <td>{item.mesada.toLocaleString()}</td>
+                      <td>{item.egresos.toLocaleString()}</td>
+                      <td>{item.valorAjustado.toLocaleString()}</td>
+                      <td>{item.salariosEquivalentes}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       ) : (
         <p>Seleccione un año para ver la gráfica.</p>
       )}

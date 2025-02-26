@@ -7,6 +7,7 @@ const contabilidadSlice = createSlice({
     clienteSeleccionado: null, // Estado inicial vacío
     loading: false,
     pagos: [], // Estado inicial vacío
+    usuarios: [], // Agregamos usuarios al contexto
   },
   reducers: {
     setClienteSeleccionado: (state, action) => {
@@ -21,9 +22,12 @@ const contabilidadSlice = createSlice({
     agregarPago: (state, action) => {
       state.pagos.push(action.payload);
     },
+    setUsuarios: (state, action) => {
+      state.usuarios = action.payload;
+    },
   },
 });
 
-export const { setClienteSeleccionado, setPagos, setLoading, agregarPago } = contabilidadSlice.actions;
+export const { setClienteSeleccionado, setPagos, setLoading, agregarPago, setUsuarios } = contabilidadSlice.actions;
 
 export default contabilidadSlice.reducer;

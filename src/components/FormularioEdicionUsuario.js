@@ -98,7 +98,7 @@ const FormularioEdicionUsuario = () => {
     setUsuarioSeleccionado(usuario);
     setFormData({
       ...usuario,
-      archivos: usuario.archivos || {}, // Asegura que 'archivos' esté definido y no sea undefined
+      archivos: usuario.archivos || {}, // Asegura que 'archivos' esté definido
     });
     setMostrarModalEdicion(true);
   };
@@ -119,32 +119,37 @@ const FormularioEdicionUsuario = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => {
-      const newFormData = { ...prev, [name]: value };
-  
-      // Validación de datos
-      const multiplicador = parseFloat(newFormData.multiplicadorSalario || 0);
-      const salarioActual = parseFloat(newFormData.salarioActual || 0);
-  
-      if (isNaN(multiplicador) || multiplicador < 0 || isNaN(salarioActual) || salarioActual < 0) {
-        // Mostrar un mensaje de error
-        console.error("El multiplicador de salario y el salario actual deben ser números positivos.");
-        return prev;
+      // Actualizamos el campo modificado
+      let newFormData = { ...prev, [name]: value };
+
+      // Si se edita manualmente "salario" o "cuotaMensual" no se recalculan automáticamente.
+      if (name === 'salario' || name === 'cuotaMensual') {
+        return newFormData;
       }
-  
-      // Cálculos
-      const nuevoSalario = multiplicador * salarioActual; 
-      newFormData.salario = nuevoSalario.toLocaleString('es-CO', {
-        minimumFractionDigits: 2,
-      }); // Formato con separadores de miles y dos decimales
-  
-      const plazo = parseFloat(newFormData.plazoMeses || 0);
-      if (plazo > 0) {
-        newFormData.cuotaMensual = (nuevoSalario / plazo).toFixed(2);
+
+      // Para los demás campos, si se actualiza el multiplicador, salarioActual o plazoMeses, se recalcula.
+      const multiplicador = parseFloat(newFormData.multiplicadorSalario);
+      const salarioAct = parseFloat(newFormData.salarioActual);
+      if (!isNaN(multiplicador) && multiplicador >= 0 && !isNaN(salarioAct) && salarioAct >= 0) {
+        const nuevoSalario = multiplicador * salarioAct;
+        newFormData.salario = nuevoSalario.toLocaleString('es-CO', {
+          minimumFractionDigits: 2,
+        });
       }
-  
+
+      const plazo = parseFloat(newFormData.plazoMeses);
+      if (!isNaN(plazo) && plazo > 0) {
+        // Para recalcular la cuota, se elimina cualquier separador de miles del salario
+        const salarioString = newFormData.salario.replace(/,/g, '');
+        const salarioNum = parseFloat(salarioString);
+        if (!isNaN(salarioNum)) {
+          newFormData.cuotaMensual = (salarioNum / plazo).toFixed(2);
+        }
+      }
       return newFormData;
     });
   };
+
   // -------------------------------------------------------------
   // 7. Guardar cambios de edición (subir a Firestore)
   // -------------------------------------------------------------
@@ -184,9 +189,7 @@ const FormularioEdicionUsuario = () => {
       // Actualizar la lista local de usuarios
       setUsuarios((prevUsuarios) =>
         prevUsuarios.map((usuario) =>
-          usuario.id === usuarioSeleccionado.id
-            ? { ...dataParaFirebase }
-            : usuario
+          usuario.id === usuarioSeleccionado.id ? { ...dataParaFirebase } : usuario
         )
       );
 
@@ -220,22 +223,22 @@ const FormularioEdicionUsuario = () => {
   // 9. Guardar cambios del salario base (salarioMinimo)
   // -------------------------------------------------------------
   const handleGuardarSalario = () => {
-    // Aquí podrías recalcular el "salario" de formData
-    // si deseas que cambie cuando cambias el salarioMinimo global
-    const nuevoSalario = parseFloat(formData.salario || 0);
+    // Aquí podrías recalcular el "salario" de formData si deseas que cambie cuando cambias el salarioMinimo global
+    const nuevoSalario = parseFloat(formData.salario.replace(/,/g, '')) || 0;
 
     if (!isNaN(nuevoSalario) && nuevoSalario > 0) {
       // Sobrescribimos el salarioMinimo
       setSalarioMinimo(nuevoSalario);
       setEditandoSalario(false);
 
-      // También, podríamos recalcular para ver el efecto en formData
-      // Ejemplo: formData.salario = salarioMinimo * multiplicadorSalario
+      // Recalcular el salario según el multiplicador (si se desea)
       setFormData((prev) => {
         const multiplicador = parseFloat(prev.multiplicadorSalario || 1);
         return {
           ...prev,
-          salario: nuevoSalario * multiplicador,
+          salario: (nuevoSalario * multiplicador).toLocaleString('es-CO', {
+            minimumFractionDigits: 2,
+          }),
         };
       });
     }
@@ -268,11 +271,7 @@ const FormularioEdicionUsuario = () => {
   return (
     <div>
       {/* Sección de Lista de Usuarios */}
-      <div
-        style={{
-          padding: '10px 0',
-        }}
-      >
+      <div style={{ padding: '10px 0' }}>
         <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>
           Lista de Usuarios
         </h2>
@@ -300,12 +299,7 @@ const FormularioEdicionUsuario = () => {
               boxSizing: 'border-box',
             }}
           />
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-            }}
-          >
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: '#007bff', color: '#fff' }}>
                 <th
@@ -423,7 +417,7 @@ const FormularioEdicionUsuario = () => {
           className="modal"
           style={{
             position: 'fixed',
-            top: '20%', // Ajusta la posición vertical del modal
+            top: '20%',
             left: '50%',
             transform: 'translate(-50%, -20%)',
             zIndex: 1000,
@@ -435,10 +429,7 @@ const FormularioEdicionUsuario = () => {
             width: '90%',
           }}
         >
-          <div
-            className="modal-content"
-            style={{ maxWidth: '800px', margin: '0 auto' }}
-          >
+          <div className="modal-content" style={{ maxWidth: '800px', margin: '0 auto' }}>
             <h3>Editar Usuario</h3>
 
             <form
@@ -581,7 +572,7 @@ const FormularioEdicionUsuario = () => {
                 />
               </div>
 
-              {/* Multiplicador, Salario, Plazo y Cuota */}
+              {/* Multiplicador, Salario Actual, Salario (calculado), Plazo y Cuota */}
               <div className="form-group">
                 <label>Multiplicador de Salario:</label>
                 <input
@@ -591,25 +582,27 @@ const FormularioEdicionUsuario = () => {
                   onChange={handleChange}
                 />
               </div>
-              <div className="form-group">
-  <label>Salario Actual:</label>
-  <input
-    type="number"
-    name="salarioActual"
-    value={formData.salarioActual || ''}
-    onChange={handleChange}
-  />
-</div>
 
-<div className="form-group">
-  <label>Salario (calculado):</label>
-  <input
-    type="text" 
-    name="salario" 
-    value={formData.salario || ''} 
-    readOnly 
-  /> 
-</div>
+              <div className="form-group">
+                <label>Salario Actual:</label>
+                <input
+                  type="number"
+                  name="salarioActual"
+                  value={formData.salarioActual || ''}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Salario (calculado):</label>
+                {/* Se eliminó el atributo readOnly para permitir la edición manual */}
+                <input
+                  type="text"
+                  name="salario"
+                  value={formData.salario || ''}
+                  onChange={handleChange}
+                />
+              </div>
 
               <div className="form-group">
                 <label>Plazo en Meses:</label>
@@ -623,6 +616,7 @@ const FormularioEdicionUsuario = () => {
 
               <div className="form-group">
                 <label>Cuota Mensual:</label>
+                {/* Se permite la edición manual al quitar readOnly */}
                 <input
                   type="number"
                   name="cuotaMensual"

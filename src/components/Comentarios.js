@@ -93,7 +93,7 @@ const Comentarios = () => {
   // ----------------------------------------------------
   const cargarDatosParris = async (usuario) => {
     try {
-      const docRef = doc(db, 'parris', usuario.documento.trim());
+      const docRef = doc(db, 'parris1', usuario.documento.trim());
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {

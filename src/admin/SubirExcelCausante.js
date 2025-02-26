@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 
-const SubirExcel = () => {
+const SubirExcelCausante = () => {
   const [collectionName, setCollectionName] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -47,10 +47,10 @@ const SubirExcel = () => {
     setLoading(true);
 
     try {
+      // 1. Leer el archivo según su extensión
       const fileExtension = file.name.split('.').pop().toLowerCase();
       const data = await readFileAsync(file);
 
-      // Lee el workbook usando opciones según el tipo de archivo
       let workbook;
       if (fileExtension === 'xls') {
         workbook = XLSX.read(data, { type: 'binary', cellDates: true, raw: false });
@@ -58,6 +58,7 @@ const SubirExcel = () => {
         workbook = XLSX.read(data, { type: 'array', cellDates: true, raw: false });
       }
 
+      // 2. Convertir la primera hoja a JSON
       const worksheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[worksheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
@@ -68,48 +69,74 @@ const SubirExcel = () => {
         return;
       }
 
-      let createdCount = 0;
+      // 3. Agrupar por "cedula_causante"
+      const dataByCausante = {};
       let errorDetails = [];
 
-      // Para cada fila se usa el valor de "cedula" como ID y el resto de los campos se guardan en el documento.
       for (const row of jsonData) {
-        const { cedula, ...rest } = row;
-        if (!cedula) {
-          // Se omite la fila si no existe la columna "cedula" y se registra un error
-          errorDetails.push(`Fila omitida, falta "cedula": ${JSON.stringify(row)}`);
+        const { cedula_causante, ...rest } = row;
+
+        // Si no existe la columna cedula_causante o viene vacía, lo registramos como error
+        if (!cedula_causante) {
+          errorDetails.push(`Fila omitida, falta "cedula_causante": ${JSON.stringify(row)}`);
           continue;
         }
-        const documentId = String(cedula).trim();
+
+        const docId = String(cedula_causante).trim();
+        if (!docId) {
+          errorDetails.push(`Fila omitida, "cedula_causante" inválida: ${JSON.stringify(row)}`);
+          continue;
+        }
+
+        // Si no existe aún en dataByCausante, se crea la estructura
+        if (!dataByCausante[docId]) {
+          dataByCausante[docId] = {
+            cedula_causante: docId,
+            records: []
+          };
+        }
+
+        // Agregamos esta fila al arreglo de records
+        dataByCausante[docId].records.push(rest);
+      }
+
+      // 4. Guardar en Firestore cada grupo
+      let createdCount = 0;
+      for (const docId in dataByCausante) {
+        const docData = dataByCausante[docId];
 
         try {
-          await setDoc(doc(db, collectionName, documentId), {
-            ...rest,
-            cedula: documentId // Se incluye la cedula en el documento, si se desea
-          });
+          // Se crea o sobreescribe el documento con ID = docId
+          await setDoc(doc(db, collectionName, docId), docData);
           createdCount++;
         } catch (docError) {
-          console.error(`Error al subir el documento con cédula ${documentId}:`, docError);
-          errorDetails.push(`Error en documento con cédula ${documentId}: ${docError.message}`);
+          console.error(`Error al subir el documento con cédula_causante ${docId}:`, docError);
+          errorDetails.push(
+            `Error en documento con cédula_causante ${docId}: ${docError.message}`
+          );
         }
       }
 
+      // 5. Si hubo errores, se muestran
       if (errorDetails.length > 0) {
         setError(`Se presentaron los siguientes errores:\n${errorDetails.join('\n')}`);
       }
 
+      // Mensaje final de éxito
       setSuccessMessage(
-        `${createdCount} documento(s) creado(s) en la colección "${collectionName}".`
+        `${createdCount} documento(s) creado(s)/actualizado(s) en la colección "${collectionName}".`
       );
     } catch (err) {
       console.error("Error al procesar el archivo: ", err);
       setError(`Error al procesar el archivo de Excel: ${err.message}`);
     }
+
     setLoading(false);
   };
 
   return (
     <div style={containerStyle}>
-      <h1>Subir Archivo de Excel a Firestore</h1>
+      <h1>Subir Archivo de Excel a Firestore (Causante)</h1>
       <div style={inputContainerStyle}>
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Nombre de la colección:</label>
@@ -143,9 +170,9 @@ const SubirExcel = () => {
   );
 };
 
-export default SubirExcel;
+export default SubirExcelCausante;
 
-// Estilos (similares a los del otro componente)
+// Estilos
 const containerStyle = {
   padding: '20px',
   fontFamily: 'Arial, sans-serif'

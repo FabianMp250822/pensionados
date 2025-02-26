@@ -43,13 +43,13 @@ const Header = ({ handleLogout }) => {
   return (
     <>
       <header className="header" style={{ position: 'fixed', top: 0, width: '100%', zIndex: 10 }}>
-      <NavLink to="/" className="logo">
-  <img 
-    src="https://firebasestorage.googleapis.com/v0/b/pensionados-d82b2.appspot.com/o/Captura%20desde%202025-02-12%2014-38-01.png?alt=media&token=85350e0f-d5fd-45fa-a7bd-8764d34c123b"
-    alt="Logo" 
-    style={{ width: '220px', height: 'auto' }}
-  />
-</NavLink>
+        <NavLink to="/" className="logo">
+          <img 
+            src="https://firebasestorage.googleapis.com/v0/b/pensionados-d82b2.appspot.com/o/Captura%20desde%202025-02-12%2014-38-01.png?alt=media&token=85350e0f-d5fd-45fa-a7bd-8764d34c123b"
+            alt="Logo" 
+            style={{ width: '220px', height: 'auto' }}
+          />
+        </NavLink>
 
         <input
           className="menu-btn"
@@ -73,28 +73,9 @@ const Header = ({ handleLogout }) => {
             </NavLink>
           </li>
           <li>
-            <a href="#" onClick={() => toggleSubmenu('contabilidad')}>
+            <NavLink to="/contabilidad" onClick={() => setMenuOpen(false)}>
               Contabilidad
-            </a>
-            {activeSubmenu === 'contabilidad' && (
-             <ul className="submenu">
-             <li>
-               <NavLink to="/contabilidad" onClick={() => setMenuOpen(false)}>
-                 Agregar cliente
-               </NavLink>
-             </li>
-             <li>
-               <NavLink to="/agregarpago" onClick={() => setMenuOpen(false)}>
-                 Registrar pagos
-               </NavLink>
-             </li>
-             <li>
-               <NavLink to="/editarusuario" onClick={() => setMenuOpen(false)}>
-                 Consultar & Editar
-               </NavLink>
-             </li>
-           </ul>
-            )}
+            </NavLink>
           </li>
           <li>
             <a href="#" onClick={() => toggleSubmenu('reportes')}>
@@ -154,5 +135,3 @@ const Header = ({ handleLogout }) => {
 };
 
 export default Header;
-
-

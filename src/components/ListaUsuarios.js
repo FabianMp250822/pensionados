@@ -1,14 +1,16 @@
-// ListaUsuarios.js
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase/firebaseConfig';
 import './ListaUsuarios.css';
-import ResumenFinanciero from './ResumenFinanciero';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUsuarios } from '../redux/contabilidadSlice';
 
 const ListaUsuarios = () => {
-  const [usuarios, setUsuarios] = useState([]);
+  const dispatch = useDispatch();
+  
+  const [usuarios, setUsuariosLocal] = useState([]);
   const [usuariosFiltrados, setUsuariosFiltrados] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
@@ -17,11 +19,10 @@ const ListaUsuarios = () => {
   const [montoPago, setMontoPago] = useState('');
   const [fechaPago, setFechaPago] = useState('');
   const [archivoSoporte, setArchivoSoporte] = useState(null);
-  const [editandoPago, setEditandoPago] = useState(null); // Estado para controlar la edición
+  const [editandoPago, setEditandoPago] = useState(null);
   const [nuevaFechaPago, setNuevaFechaPago] = useState('');
   const [grupoFiltro, setGrupoFiltro] = useState('');
   const [grupos, setGrupos] = useState([]);
-  const [confirmarEliminar, setConfirmarEliminar] = useState(false);
   const [nuevoMontoPago, setNuevoMontoPago] = useState('');
 
   // Obtener usuarios y sus pagos de Firebase
@@ -43,7 +44,6 @@ const ListaUsuarios = () => {
 
             // Ordena los pagos por fecha (más recientes primero)
             pagos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
             userData.pagos = pagos;
             return userData;
           })
@@ -51,9 +51,9 @@ const ListaUsuarios = () => {
 
         // Obtener los grupos únicos
         const gruposUnicos = [...new Set(usuariosData.map((usuario) => usuario.grupo))];
-        setGrupos(gruposUnicos); // Actualizar el estado con los grupos
+        setGrupos(gruposUnicos);
 
-        setUsuarios(usuariosData);
+        setUsuariosLocal(usuariosData);
         setUsuariosFiltrados(usuariosData);
       } catch (error) {
         console.error('Error al obtener usuarios:', error);
@@ -61,6 +61,11 @@ const ListaUsuarios = () => {
     };
     obtenerUsuariosConPagos();
   }, []);
+
+  // Despachar usuarios filtrados al contexto
+  useEffect(() => {
+    dispatch(setUsuarios(usuariosFiltrados));
+  }, [usuariosFiltrados, dispatch]);
 
   // Manejar la búsqueda
   const handleBusqueda = (e) => {
@@ -77,7 +82,6 @@ const ListaUsuarios = () => {
         nombreCompleto.includes(busqueda.toLowerCase()) ||
         cedula.includes(busqueda.toLowerCase());
 
-      // Filtrar por grupo solo si hay un grupo seleccionado
       const coincideGrupo = grupoFiltro === '' || usuario.grupo === grupoFiltro;
 
       return coincideNombreCedula && coincideGrupo;
@@ -114,25 +118,21 @@ const ListaUsuarios = () => {
     setUsuarioSeleccionado(null);
   };
 
-  // Función para manejar el cambio en el input de la fecha
   const handleFechaChange = (e) => {
     setNuevaFechaPago(e.target.value);
   };
 
-  // Función para activar el modo edición de un pago
   const editarPago = (pago) => {
     setEditandoPago(pago);
     setNuevaFechaPago(pago.fecha);
-    setNuevoMontoPago(pago.monto); // Inicializa el nuevo monto con el monto actual
+    setNuevoMontoPago(pago.monto);
   };
 
-  // Función para cancelar la edición
   const cancelarEdicion = () => {
     setEditandoPago(null);
     setNuevaFechaPago('');
   };
 
-  // Función para guardar la fecha editada en Firestore
   const guardarFechaEditada = async (pago) => {
     try {
       const porcentajeDescuento = 0;
@@ -148,7 +148,7 @@ const ListaUsuarios = () => {
         empresa: montoDespuesDescuento * 0.7692307692307693,
       });
 
-      setUsuarios((prevUsuarios) =>
+      setUsuariosLocal((prevUsuarios) =>
         prevUsuarios.map((usuario) =>
           usuario.id === usuarioSeleccionado.id
             ? {
@@ -243,7 +243,7 @@ const ListaUsuarios = () => {
       alert('Pago registrado exitosamente.');
 
       const nuevoPago = { id: pagoRef.id, ...pagoData };
-      setUsuarios((prevUsuarios) =>
+      setUsuariosLocal((prevUsuarios) =>
         prevUsuarios.map((usuario) =>
           usuario.id === usuarioSeleccionado.id
             ? { ...usuario, pagos: [...usuario.pagos, nuevoPago] }
@@ -259,56 +259,8 @@ const ListaUsuarios = () => {
         )
       );
 
-      // Calcular valores adicionales
-      const cuotaMensual = parseFloat(usuarioSeleccionado.cuotaMensual);
-      const plazoMeses = parseInt(usuarioSeleccionado.plazoMeses);
-      const totalAPagar = cuotaMensual * plazoMeses;
-      const totalPagado = usuarioSeleccionado.pagos
-        ? usuarioSeleccionado.pagos.reduce((sum, pago) => sum + parseFloat(pago.montoNeto), parseFloat(montoDespuesDescuento))
-        : parseFloat(montoDespuesDescuento);
-      const deudaActual = totalAPagar - totalPagado;
-
-      // Datos para el correo
-      const emailData = {
-        emailUsuario: usuarioSeleccionado.correo,
-        nombreUsuario: `${usuarioSeleccionado.nombres} ${usuarioSeleccionado.apellidos}`,
-        montoPago: parseFloat(montoPago).toFixed(2),
-        fechaPago: fechaPago,
-        soporteURL: soporteURL,
-        cedula: usuarioSeleccionado.cedula,
-        celular: usuarioSeleccionado.celular,
-        cuotaMensual: usuarioSeleccionado.cuotaMensual,
-        plazoMeses: usuarioSeleccionado.plazoMeses,
-        totalAPagar: totalAPagar.toFixed(2),
-        totalPagado: totalPagado.toFixed(2),
-        deudaActual: deudaActual.toFixed(2),
-      };
-
-      console.log('Datos del usuario seleccionado:', usuarioSeleccionado);
-      console.log('Datos del correo a enviar:', emailData);
-
-      // Enviar correo usando fetch a la función externa
-      if (!emailData.emailUsuario) {
-        console.error('El usuario seleccionado no tiene un email válido.');
-      } else {
-        try {
-          const response = await fetch('https://sendemailnotificaciones-w4tv3jcmvq-uc.a.run.app', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(emailData),
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const resultado = await response.json();
-          console.log('Correo enviado:', resultado);
-          alert('Correo enviado exitosamente.');
-        } catch (error) {
-          console.error('Error al enviar el correo:', error);
-          alert(`Error al enviar el correo: ${error.message || 'Revisa la consola para más detalles.'}`);
-        }
-      }
-
+      // Cálculos adicionales (si es necesario)
+      alert('Pago registrado y datos actualizados.');
       cerrarModalPago();
     } catch (error) {
       console.error('Error al registrar el pago:', error);
@@ -321,7 +273,7 @@ const ListaUsuarios = () => {
       try {
         await deleteDoc(doc(db, 'nuevosclientes', usuarioSeleccionado.id, 'pagos', pago.id));
 
-        setUsuarios((prevUsuarios) =>
+        setUsuariosLocal((prevUsuarios) =>
           prevUsuarios.map((usuario) =>
             usuario.id === usuarioSeleccionado.id
               ? { ...usuario, pagos: usuario.pagos.filter((p) => p.id !== pago.id) }
@@ -345,15 +297,13 @@ const ListaUsuarios = () => {
     }
   };
 
-  // NUEVA FUNCIÓN: Reenviar Soporte por correo para un pago específico
   const reenviarSoporte = async (pago) => {
     if (!usuarioSeleccionado) {
       alert("No se ha seleccionado un usuario.");
       return;
     }
-    // Recalcular totales del usuario
     const cuotaMensual = parseFloat(usuarioSeleccionado.cuotaMensual);
-    const plazoMeses = parseInt(usuarioSeleccionado.plazoMeses);
+    const plazoMeses = parseInt(usuarioSeleccionado.plazoMeses, 10);
     const totalAPagar = cuotaMensual * plazoMeses;
     const totalPagado = usuarioSeleccionado.pagos
       ? usuarioSeleccionado.pagos.reduce((sum, p) => sum + parseFloat(p.montoNeto), 0)
@@ -441,7 +391,7 @@ const ListaUsuarios = () => {
           <tbody>
             {usuariosFiltrados.map((usuario, index) => {
               const cuotaMensual = parseFloat(usuario.cuotaMensual);
-              const plazoMeses = parseInt(usuario.plazoMeses);
+              const plazoMeses = parseInt(usuario.plazoMeses, 10);
               const totalAPagar = cuotaMensual * plazoMeses;
               const totalPagado = usuario.pagos
                 ? usuario.pagos.reduce((sum, pago) => sum + parseFloat(pago.montoNeto), 0)
@@ -486,7 +436,7 @@ const ListaUsuarios = () => {
             </h3>
             {(() => {
               const cuotaMensual = parseFloat(usuarioSeleccionado.cuotaMensual);
-              const plazoMeses = parseInt(usuarioSeleccionado.plazoMeses);
+              const plazoMeses = parseInt(usuarioSeleccionado.plazoMeses, 10);
               const totalAPagar = cuotaMensual * plazoMeses;
               const totalPagado = usuarioSeleccionado.pagos
                 ? usuarioSeleccionado.pagos.reduce((sum, pago) => sum + parseFloat(pago.montoNeto), 0)
@@ -733,7 +683,6 @@ const ListaUsuarios = () => {
           </div>
         </div>
       )}
-      <ResumenFinanciero usuarios={usuariosFiltrados} />
     </div>
   );
 };

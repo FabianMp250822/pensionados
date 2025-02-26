@@ -1,65 +1,134 @@
-.formulario-inscripcion {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-   
-    margin: 0 auto;
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* Contenedor principal con ID para mayor especificidad */
+#formulario-inscripcion {
+  display: flex !important;
+  flex-direction: column;
+  gap: 20px !important;
+  margin: 0 auto !important;
+  background: #f9f9f9 !important;
+  padding: 20px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Título */
+#formulario-inscripcion h2 {
+  width: 100% !important;
+  text-align: center !important;
+  color: #333 !important;
+  margin-bottom: 20px !important;
+  font-size: 1.5em !important;
+}
+
+/* Creamos un grid para organizar en dos columnas */
+.formulario-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 20px !important;
+  width: 100% !important;
+}
+
+/* Estilos generales de cada grupo de campo */
+.form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+/* Si se quiere forzar dos columnas sin depender del auto-fit, se pueden usar las reglas
+   .form-group.half-width { width: 48% !important; } 
+   pero con grid no es necesario. */
+
+/* Estilos para labels */
+.form-group label {
+  font-weight: bold !important;
+  color: #555 !important;
+  margin-bottom: 5px !important;
+}
+
+/* Estilos para inputs y selects */
+.form-group input,
+.form-group select {
+  padding: 10px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  transition: border-color 0.3s !important;
+  font-size: 0.95rem !important;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #007bff !important;
+  outline: none !important;
+}
+
+/* Botón de envío */
+.submit-button {
+  width: 100% !important;
+  padding: 12px !important;
+  font-size: 1em !important;
+  background-color: #007bff !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s !important;
+  margin-top: 20px !important;
+  font-weight: bold !important;
+}
+
+.submit-button:hover {
+  background-color: #0056b3 !important;
+}
+
+/* Otros archivos: estilo para cada bloque */
+.otros-archivo {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 5px !important;
+}
+
+.otros-archivo input[type="text"] {
+  flex: 1 !important;
+  margin-right: 5px !important;
+}
+
+.otros-archivo input[type="file"] {
+  flex: 1 !important;
+  margin-right: 5px !important;
+}
+
+/* Responsivo: en pantallas pequeñas, ajusta el grid a una columna */
+@media (max-width: 768px) {
+  .formulario-grid {
+    grid-template-columns: 1fr !important;
   }
-  
-  .formulario-inscripcion h2 {
-    width: 100%;
-    text-align: center;
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 1.5em;
+}
+/* Contenedor para 3 columnas fijas */
+.otros-archivo-container {
+  display: grid !important;
+  grid-template-columns: repeat(3, 300px) !important; /* Tres columnas de 300px */
+  justify-content: center !important;  /* Centra el grid en el contenedor */
+  gap: 20px !important;                /* Espacio entre columnas */
+  margin-top: 10px !important;
+}
+
+/* Cada columna (cada archivo) */
+.otros-archivo-col {
+  background-color: #fff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  padding: 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;  /* Espacio interno entre los inputs y el botón */
+}
+
+/* Ajusta la responsividad: 
+   Si el contenedor es menor a 900px (3*300), 
+   las columnas empezarán a "wrap" en la siguiente fila.
+*/
+@media (max-width: 900px) {
+  .otros-archivo-container {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
   }
-  
-  .form-group {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .form-group.half-width {
-    width: 48%; /* Cada columna ocupará la mitad del ancho del contenedor */
-  }
-  
-  .form-group label {
-    font-weight: bold;
-    color: #555;
-    margin-bottom: 5px;
-  }
-  
-  .form-group input {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    transition: border-color 0.3s;
-  }
-  
-  .form-group input:focus {
-    border-color: #007bff;
-    outline: none;
-  }
-  
-  .submit-button {
-    width: 100%;
-    padding: 12px;
-    font-size: 1em;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 20px;
-  }
-  
-  .submit-button:hover {
-    background-color: #0056b3;
-  }
-  
+}

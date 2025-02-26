@@ -21,6 +21,7 @@ import ConsultaPagosContrario from './components/resumenTablaContrario';
 import ConsultaCompartidos from './components/consultacompartidos';
 import ConsultaNopagos from './components/Consultanopagos';
 import SubirExcel from './admin/cargarNuevosDatos';
+import SubirExcelCausante from './admin/SubirExcelCausante';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -68,8 +69,10 @@ function App() {
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/pagosespecificos" element={<PagosEspecificos />} />
                 <Route path="/contabilidad" element={<Contabilidad />} />
-                <Route path="/" element={<Eventos />} /> {/* Ruta por defecto  SubirExcel */}
+                <Route path="/" element={<Eventos />} /> {/* Ruta por defecto  SubirExcel SubirExcelCausante */}
                 <Route path="/cargadatos" element={<SubirExcel />} />
+                <Route path="/cargadatosCausante" element={<SubirExcelCausante />} />
+
               </Routes>
             </main>
           </>
