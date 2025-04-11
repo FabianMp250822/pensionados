@@ -254,7 +254,7 @@ const FiltroReajuste = () => {
   
         {previousYearsResults.length > 0 && (
           <div>
-            <h3>Años Anteriores (Hasta {fechaLimite.getFullYear() - 1})</h3>
+            <h3>Años Anteriores  (Hasta {fechaLimite.getFullYear() - 1})</h3>
             {previousYearsResults.map((resultado) => (
               <div key={resultado.año} className="reajuste-card">
                 <p>

@@ -28,7 +28,7 @@ const storage = getStorage(app); // Inicializar Storage
 const vertexAI = getVertexAI(app);
 
 // Inicializar el modelo generativo de Gemini 1.5
-const model = getGenerativeModel(vertexAI, { model: "gemini-1.5-flash" });
+const model = getGenerativeModel(vertexAI, { model: "gemini-2.0-flash" });
 
 // Exportar servicios de Firebase y la instancia de `app` y modelo
 export { db, auth, app, vertexAI, model, storage };

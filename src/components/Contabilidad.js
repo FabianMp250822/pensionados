@@ -8,10 +8,11 @@ import ContabilidadIcons from './ContabilidadIcons';
 import ListaUsuarios from './ListaUsuarios'; // Para "Agregar Pago"
 import FormularioEdicionUsuario from './FormularioEdicionUsuario'; // Para "Editar Usuario"
 import ResumenFinanciero from './ResumenFinanciero'; // Para "Resumen Financiero"
+import DocumentosSoporte from './DocumentosSoporte'; // Importa el componente DocumentosSoporte
 
 const Contabilidad = () => {
   const { clienteSeleccionado, loading, pagos } = useSelector((state) => state.contabilidad || {});
-  // Suponiendo que "usuariosFiltrados" es parte del estado o se obtiene de alguna lógica.
+  // Supongamos que "usuariosFiltrados" es parte del estado o se obtiene de alguna lógica.
   const usuariosFiltrados = useSelector((state) => state.usuariosFiltrados || []);
 
   // Establecemos 'agregarPago' como vista inicial.
@@ -67,10 +68,10 @@ const Contabilidad = () => {
         {clienteSeleccionado ? (
           <div className="cliente-details" style={{ backgroundColor: '#fff', padding: '20px', marginBottom: '20px' }}>
             <h1>{clienteSeleccionado.nombre}</h1>
-            <p><strong>Empresa:</strong> {clienteSeleccionado.empresa}</p>
+            {/* <p><strong>Empresa:</strong> {clienteSeleccionado.empresa}</p>
             <p><strong>NIT:</strong> {clienteSeleccionado.nit}</p>
             <p><strong>Centro de Costo:</strong> {clienteSeleccionado.centroCosto}</p>
-            <p><strong>Cargo:</strong> {clienteSeleccionado.cargo}</p>
+            <p><strong>Cargo:</strong> {clienteSeleccionado.cargo}</p> */}
           </div>
         ) : (
           <h1>Seleccione un cliente</h1>
@@ -98,6 +99,9 @@ const Contabilidad = () => {
           )}
           {vistaSeleccionada === 'resumenFinanciero' && (
             <ResumenFinanciero usuarios={usuariosFiltrados} />
+          )}
+          {vistaSeleccionada === 'documentosSoporte' && (
+            <DocumentosSoporte />
           )}
           {!vistaSeleccionada && (
             <h2>Seleccione una opción en el menú de la izquierda</h2>

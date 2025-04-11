@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
-import CircularProgress from '@mui/material/CircularProgress'; // Importa CircularProgress de Material-UI
+import CircularProgress from '@mui/material/CircularProgress';
 
-const SubirExcel = () => {
+const SubirDatosNoRelacionados = () => {
   const [collectionName, setCollectionName] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [uploadProgress, setUploadProgress] = useState(0); // Nuevo estado para el progreso
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Maneja la selección del archivo
   const handleFileChange = (e) => {
     if (e.target.files.length > 0) {
       setFile(e.target.files[0]);
     }
   };
 
-  // Función para leer el archivo de forma diferenciada según su extensión
   const readFileAsync = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -47,13 +45,12 @@ const SubirExcel = () => {
     setError('');
     setSuccessMessage('');
     setLoading(true);
-    setUploadProgress(0); // Reinicia el progreso al iniciar la carga
+    setUploadProgress(0);
 
     try {
       const fileExtension = file.name.split('.').pop().toLowerCase();
       const data = await readFileAsync(file);
 
-      // Lee el workbook usando opciones según el tipo de archivo
       let workbook;
       if (fileExtension === 'xls') {
         workbook = XLSX.read(data, { type: 'binary', cellDates: true, raw: false });
@@ -71,34 +68,48 @@ const SubirExcel = () => {
         return;
       }
 
+      // Organizar los datos por año y mes
+      const datosPorAño = {};
+      jsonData.forEach((row) => {
+        const año = row['Año'];
+const mes = row['Mes'];
+const valor1 = row['Número Índice'];
+const valor2 = row['Variación Mensual'];
+
+        if (!datosPorAño[año]) {
+          datosPorAño[año] = {};
+        }
+        datosPorAño[año][mes] = {
+          valor1: valor1,
+          valor2: valor2,
+        };
+      });
+
       let createdCount = 0;
       let errorDetails = [];
-      const totalRows = jsonData.length; // Total de filas para calcular el progreso
+      const totalYears = Object.keys(datosPorAño).length;
+      let currentYearIndex = 0;
 
-      // Para cada fila se usa el valor de "cedula" como ID y el resto de los campos se guardan en el documento.
-      for (let i = 0; i < jsonData.length; i++) {
-        const row = jsonData[i];
-        const { cedula, ...rest } = row;
-        if (!cedula) {
-          // Se omite la fila si no existe la columna "cedula" y se registra un error
-          errorDetails.push(`Fila omitida, falta "cedula": ${JSON.stringify(row)}`);
-          continue;
-        }
-        const documentId = String(cedula).trim();
-
+      for (const año in datosPorAño) {
+        currentYearIndex++;
+        const documentId = año;
         try {
-          await setDoc(doc(db, collectionName, documentId), {
-            ...rest,
-            cedula: documentId // Se incluye la cedula en el documento, si se desea
-          });
+          // Verificar si el documento ya existe
+          const docRef = doc(db, collectionName, documentId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            // Si el documento existe, actualizarlo
+            await setDoc(docRef, datosPorAño[año], { merge: true });
+          } else {
+            // Si el documento no existe, crearlo
+            await setDoc(docRef, datosPorAño[año]);
+          }
           createdCount++;
         } catch (docError) {
-          console.error(`Error al subir el documento con cédula ${documentId}:`, docError);
-          errorDetails.push(`Error en documento con cédula ${documentId}: ${docError.message}`);
+          console.error(`Error al subir el documento del año ${documentId}:`, docError);
+          errorDetails.push(`Error en documento del año ${documentId}: ${docError.message}`);
         }
-
-        // Calcula y actualiza el progreso
-        const progress = Math.round(((i + 1) / totalRows) * 100);
+        const progress = Math.round((currentYearIndex / totalYears) * 100);
         setUploadProgress(progress);
       }
 
@@ -107,19 +118,19 @@ const SubirExcel = () => {
       }
 
       setSuccessMessage(
-        `${createdCount} documento(s) creado(s) en la colección "${collectionName}".`
+        `${createdCount} documento(s) creado(s) o actualizado(s) en la colección "${collectionName}".`
       );
     } catch (err) {
       console.error("Error al procesar el archivo: ", err);
       setError(`Error al procesar el archivo de Excel: ${err.message}`);
     }
     setLoading(false);
-    setUploadProgress(0); // Reinicia el progreso al finalizar
+    setUploadProgress(0);
   };
 
   return (
     <div style={containerStyle}>
-      <h1>Subir Archivo de Excel a Firestore</h1>
+      <h1>Subir Datos No Relacionados desde Excel a Firestore</h1>
       <div style={inputContainerStyle}>
         <div style={inputGroupStyle}>
           <label style={labelStyle}>Nombre de la colección:</label>
@@ -128,7 +139,7 @@ const SubirExcel = () => {
             value={collectionName}
             onChange={(e) => setCollectionName(e.target.value)}
             style={inputStyle}
-            placeholder="Ej: pensionados, usuarios, etc."
+            placeholder="Ej: datos_mensuales, etc."
           />
         </div>
         <div style={inputGroupStyle}>
@@ -147,7 +158,6 @@ const SubirExcel = () => {
         </div>
       </div>
 
-      {/* Muestra el indicador de carga y el progreso */}
       {loading && (
         <div style={loadingContainerStyle}>
           <CircularProgress variant="determinate" value={uploadProgress} />
@@ -161,9 +171,8 @@ const SubirExcel = () => {
   );
 };
 
-export default SubirExcel;
+export default SubirDatosNoRelacionados;
 
-// Estilos (similares a los del otro componente)
 const containerStyle = {
   padding: '20px',
   fontFamily: 'Arial, sans-serif'
@@ -210,7 +219,6 @@ const successStyle = {
   color: 'green'
 };
 
-// Nuevos estilos para el indicador de carga
 const loadingContainerStyle = {
   display: 'flex',
   flexDirection: 'column',

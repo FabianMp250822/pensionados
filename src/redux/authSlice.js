@@ -1,20 +1,32 @@
+// authSlice.js mejorado con estado loading
 import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  isAuthenticated: false,
+  userRole: null,
+  isLoading: true, // Agrega este estado de carga
+};
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState: {
-    isAuthenticated: false, // Estado inicial de autenticación
-  },
+  initialState,
   reducers: {
-    login: (state) => {
-      state.isAuthenticated = true; // Cambiamos el estado a autenticado
+    login: (state, action) => {
+      state.isAuthenticated = true;
+      state.userRole = action.payload?.userRole || null;
+      state.isLoading = false; // Indica que ya cargó
+      console.log("Rol obtenido:", state.userRole);
     },
     logout: (state) => {
-      state.isAuthenticated = false; // Cambiamos el estado a no autenticado
+      state.isAuthenticated = false;
+      state.userRole = null;
+      state.isLoading = false;
+    },
+    setLoading: (state, action) => {
+      state.isLoading = action.payload;
     },
   },
 });
 
-export const { login, logout } = authSlice.actions;
-
+export const { login, logout, setLoading } = authSlice.actions;
 export default authSlice.reducer;

@@ -4,11 +4,11 @@ import {
   FaMoneyCheckAlt,
   FaHistory,
   FaPlusSquare,
-  FaUserEdit
+  FaUserEdit,
+  FaFileAlt   
 } from 'react-icons/fa';
 
 const ClienteSelector = ({ onOptionChange }) => {
-  // Función para manejar el clic en cada opción
   const handleOptionClick = (opcion) => {
     onOptionChange(opcion);
   };
@@ -28,7 +28,6 @@ const ClienteSelector = ({ onOptionChange }) => {
           <FaHistory className="icon" />
           <span>Ver Historial de Pagos</span>
         </li>
-        {/* Nuevas opciones */}
         <li onClick={() => handleOptionClick('agregarPago')}>
           <FaPlusSquare className="icon" />
           <span>Agregar Pago</span>
@@ -36,6 +35,10 @@ const ClienteSelector = ({ onOptionChange }) => {
         <li onClick={() => handleOptionClick('editarUsuario')}>
           <FaUserEdit className="icon" />
           <span>Editar Usuario</span>
+        </li>
+        <li onClick={() => handleOptionClick('documentosSoporte')}>
+          <FaFileAlt className="icon" />
+          <span>Documentos Soporte</span>
         </li>
       </ul>
     </div>

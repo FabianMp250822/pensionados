@@ -1,4 +1,3 @@
-// Eventos.js
 import React, { useState, useEffect } from 'react';
 import FiltroPagos from './FiltroPagos';
 import Comentarios from './Comentarios';
@@ -126,18 +125,21 @@ const obtenerUltimaMesada = (pensiones = []) => {
 const Eventos = () => {
   const dispatch = useDispatch();
 
-  // Estado proveniente de "pensiones"
+  // Estados de pensiones
   const { usuarioSeleccionado, loading, pensiones, parrisData } = useSelector(
     (state) => state.pensiones
   );
 
-  // Estado proveniente de "causantes"
+  // Estado de causantes
   const {
     status: causanteStatus,
     error: causanteError,
     userType,
     causanteData,
   } = useSelector((state) => state.causantes);
+
+  // Extraemos el rol del usuario autenticado desde el store de auth
+  const { userRole } = useSelector((state) => state.auth);
 
   // Estado para la vista seleccionada (los íconos serán la entrada)
   const [vistaSeleccionada, setVistaSeleccionada] = useState('');
@@ -154,15 +156,13 @@ const Eventos = () => {
     }
   }, [usuarioSeleccionado, dispatch]);
 
-  // Función para formatear el fondo de salud
+  // Funciones de formateo
   const formatearFondoSalud = (fondoSalud) =>
     fondoSalud ? fondoSalud.replace(/^Salud:\s*/, '') : 'Sin fondo de salud';
 
-  // Función para formatear la dependencia
   const formatearDependencia = (dependencia) =>
     dependencia ? dependencia.split('-').slice(1).join('-').trim() : 'Sin dependencia';
 
-  // Calculamos la mesada inicial (primer pago registrado)
   const mesadaInicial = obtenerMesadaInicial(pensiones);
   const mesadaInicialFormateada =
     mesadaInicial !== null
@@ -172,7 +172,6 @@ const Eventos = () => {
         }).format(mesadaInicial)
       : ' - ';
 
-  // Calculamos la última mesada (último pago registrado)
   const ultimeMesada = obtenerUltimaMesada(pensiones);
   const ultimeMesadaFormateada =
     ultimeMesada !== null
@@ -182,7 +181,6 @@ const Eventos = () => {
         }).format(ultimeMesada)
       : ' - ';
 
-  // Efecto para actualizar la mesada inicial en la data de parris (si aplica)
   useEffect(() => {
     if (mesadaInicial != null && parrisData) {
       console.log('Actualizando mesada inicial en parris con el valor:', mesadaInicial);
@@ -190,7 +188,6 @@ const Eventos = () => {
     }
   }, [mesadaInicial, parrisData, dispatch]);
 
-  // Función para limpiar el nombre y quitar la parte (C.C. xxxxx)
   const limpiarNombre = (nombreCompleto) => {
     if (!nombreCompleto) return '';
     return nombreCompleto.replace(/\s*\(C\.C\..*\)/, '').trim();
@@ -210,14 +207,21 @@ const Eventos = () => {
         ) : usuarioSeleccionado ? (
           <>
             {vistaSeleccionada === '' ? (
-              // Mostramos la tarjeta de datos del usuario
+              // Tarjeta de datos del usuario
               <div className="usuario-info-card">
-                <h2 className="usuario-nombre">
-                  Datos Laborales y de Pensión de {limpiarNombre(usuarioSeleccionado.nombre)}
-                </h2>
+                <div className="eventos-header">
+                  <h1>Sistema de Consulta de Pensiones y Pagos</h1>
+                  <div className="header-role">
+                    {userRole && <span>Bienvenido: {userRole}</span>}
+                  </div>
+                  <p>
+                    Este sistema le permite consultar sus pensiones y pagos realizados a través del tiempo,
+                    así como los procesos gestionados por la compañía. Además, podrá acceder a la
+                    liquidación de pensiones según lo establecido en la ley.
+                  </p>
+                </div>
                 <div className="form-section">
                   <div className="form-row">
-                    {/* Columna 1 */}
                     <div className="col-md-4">
                       <div className="form-group">
                         <label>Empresa:</label>
@@ -272,8 +276,6 @@ const Eventos = () => {
                         </>
                       )}
                     </div>
-
-                    {/* Columna 2 */}
                     <div className="col-md-4">
                       <div className="form-group">
                         <label>Cargo:</label>
@@ -322,8 +324,6 @@ const Eventos = () => {
                         </>
                       )}
                     </div>
-
-                    {/* Columna 3 */}
                     <div className="col-md-4">
                       {parrisData && (
                         <>
@@ -382,85 +382,82 @@ const Eventos = () => {
                   </div>
                 </div>
 
-                {/* Aquí mostramos la información de causante/beneficiario si existe */}
                 <hr />
                 <h3>Información de Causante / Beneficiario</h3>
-{causanteStatus === 'loading' && (
-  <p>Cargando datos de causante/beneficiario...</p>
-)}
-{causanteStatus === 'failed' && (
-  <p style={{ color: 'red' }}>Error: {causanteError}</p>
-)}
-{causanteStatus === 'succeeded' && userType !== 'NONE' && causanteData && (
-  <div id="causanteInfo" style={{ marginBottom: '20px' }}>
-    <p>
-      Este usuario es: <strong>{userType}</strong>
-      <br />
-      Cédula causante: {causanteData.cedula_causante}
-    </p>
-    <table
-      id="causanteTable"
-      style={{
-        width: '100%',
-        borderCollapse: 'collapse',
-        marginBottom: '20px'
-      }}
-    >
-      <thead>
-        <tr style={{ backgroundColor: '#f2f2f2' }}>
-          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Fecha Desde</th>
-          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Fecha Hasta</th>
-          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Observación</th>
-          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Tipo Aum.</th>
-          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Valor Empresa</th>
-          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Valor ISS</th>
-          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Beneficiario</th>
-        </tr>
-      </thead>
-      <tbody>
-        {causanteData.records?.map((item, index) => {
-          const fechaDesde = item.fecha_desde?.toDate
-            ? item.fecha_desde.toDate().toLocaleDateString()
-            : item.fecha_desde;
-          const fechaHasta = item.fecha_hasta?.toDate
-            ? item.fecha_hasta.toDate().toLocaleDateString()
-            : item.fecha_hasta;
-          return (
-            <tr key={index} style={{ border: '1px solid #ddd' }}>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fechaDesde}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fechaHasta}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.observacion}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.tipo_aum}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                {typeof item.valor_empresa === 'number'
-                  ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.valor_empresa)
-                  : item.valor_empresa}
-              </td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                {typeof item.valor_iss === 'number'
-                  ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.valor_iss)
-                  : item.valor_iss}
-              </td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.cedula_beneficiario}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  </div>
-)}
-{causanteStatus === 'succeeded' && userType === 'NONE' && (
-  <p>No se encontró información de causante/beneficiario para esta cédula.</p>
-)}
+                {causanteStatus === 'loading' && (
+                  <p>Cargando datos de causante/beneficiario...</p>
+                )}
+                {causanteStatus === 'failed' && (
+                  <p style={{ color: 'red' }}>Error: {causanteError}</p>
+                )}
+                {causanteStatus === 'succeeded' && userType !== 'NONE' && causanteData && (
+                  <div id="causanteInfo" style={{ marginBottom: '20px' }}>
+                    <p>
+                      Este usuario es: <strong>{userType}</strong>
+                      <br />
+                      Cédula causante: {causanteData.cedula_causante}
+                    </p>
+                    <table
+                      id="causanteTable"
+                      style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        marginBottom: '20px'
+                      }}
+                    >
+                      <thead>
+                        <tr style={{ backgroundColor: '#f2f2f2' }}>
+                          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Fecha Desde</th>
+                          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Fecha Hasta</th>
+                          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Observación</th>
+                          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Tipo Aum.</th>
+                          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Valor Empresa</th>
+                          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Valor ISS</th>
+                          <th style={{ border: '1px solid #ddd', padding: '8px' }}>Beneficiario</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {causanteData.records?.map((item, index) => {
+                          const fechaDesde = item.fecha_desde?.toDate
+                            ? item.fecha_desde.toDate().toLocaleDateString()
+                            : item.fecha_desde;
+                          const fechaHasta = item.fecha_hasta?.toDate
+                            ? item.fecha_hasta.toDate().toLocaleDateString()
+                            : item.fecha_hasta;
+                          return (
+                            <tr key={index} style={{ border: '1px solid #ddd' }}>
+                              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fechaDesde}</td>
+                              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{fechaHasta}</td>
+                              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.observacion}</td>
+                              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.tipo_aum}</td>
+                              <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                                {typeof item.valor_empresa === 'number'
+                                  ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.valor_empresa)
+                                  : item.valor_empresa}
+                              </td>
+                              <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                                {typeof item.valor_iss === 'number'
+                                  ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(item.valor_iss)
+                                  : item.valor_iss}
+                              </td>
+                              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.cedula_beneficiario}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {causanteStatus === 'succeeded' && userType === 'NONE' && (
+                  <p>No se encontró información de causante/beneficiario para esta cédula.</p>
+                )}
               </div>
             ) : (
-              // Si el usuario ya está seleccionado, pero la vista no es '' => en blanco
               <div className="usuario-info-card">
                 <h2 className="usuario-nombre">Datos Laborales y de Pensión</h2>
               </div>
             )}
 
-            {/* Contenedor de la vista que se selecciona con los íconos */}
             <div className="vista-seleccionada-container">
               {vistaSeleccionada === 'Liquidaciones' ? (
                 loading ? (
@@ -484,9 +481,11 @@ const Eventos = () => {
             </div>
           </>
         ) : (
-          // Si NO hay un usuario seleccionado
           <div className="eventos-header">
             <h1>Sistema de Consulta de Pensiones y Pagos</h1>
+            <div className="header-role">
+              {userRole && <span>Bienvenido: {userRole}</span>}
+            </div>
             <p>
               Este sistema le permite consultar sus pensiones y pagos realizados a través del tiempo,
               así como los procesos gestionados por la compañía. Además, podrá acceder a la

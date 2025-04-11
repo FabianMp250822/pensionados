@@ -5,11 +5,11 @@ import {
   FaHistory,
   FaPlusSquare,
   FaUserEdit,
-  FaChartLine  // Ícono para Resumen Financiero
+  FaChartLine,  
+  FaFileAlt     
 } from 'react-icons/fa';
 
 const ContabilidadIcons = ({ vistaSeleccionada, setVistaSeleccionada }) => {
-  // Opciones del menú lateral
   const opciones = [
     { label: 'Crear Nuevo Cliente', value: 'crearCliente', icon: <FaUserPlus /> },
     { label: 'Ver Pagos de Cliente', value: 'verPagosCliente', icon: <FaMoneyCheckAlt /> },
@@ -17,9 +17,9 @@ const ContabilidadIcons = ({ vistaSeleccionada, setVistaSeleccionada }) => {
     { label: 'Agregar Pago', value: 'agregarPago', icon: <FaPlusSquare /> },
     { label: 'Editar Usuario', value: 'editarUsuario', icon: <FaUserEdit /> },
     { label: 'Resumen Financiero', value: 'resumenFinanciero', icon: <FaChartLine /> },
+    { label: 'Documentos Soporte', value: 'documentosSoporte', icon: <FaFileAlt /> }
   ];
 
-  // Estilos en objeto JS
   const styles = {
     container: {
       display: 'flex',

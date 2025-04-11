@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, doc, setDoc, getDoc, writeBatch, collection } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, writeBatch } from 'firebase/firestore';
 import './Certificaciones.css';
 
 const Certificaciones = () => {
@@ -7,13 +7,15 @@ const Certificaciones = () => {
   const [status, setStatus] = useState('');
   const [currentFile, setCurrentFile] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [procesadosConCostas, setProcesadosConCostas] = useState([]);
+  const [procesadosSinCostas, setProcesadosSinCostas] = useState([]);
+  const [usuarioActual, setUsuarioActual] = useState(''); // Nuevo estado para mostrar el usuario actual
 
   const db = getFirestore();
 
   const handleFileUpload = (event) => {
     const selectedFiles = event.target.files;
     if (selectedFiles.length > 0) {
-      // Convierte FileList a array y filtra solo archivos .json
       const jsonFiles = Array.from(selectedFiles).filter((file) =>
         file.name.toLowerCase().endsWith('.json')
       );
@@ -22,18 +24,13 @@ const Certificaciones = () => {
   };
 
   const parseFilePath = (filePath) => {
-    // Divide la ruta en segmentos
     const pathSegments = filePath.split('/');
-    // Obtenemos el último segmento de la ruta (nombre del archivo)
     const fileName = pathSegments[pathSegments.length - 1];
-    // Obtenemos el penúltimo segmento (carpeta que contiene el archivo)
     const parentFolder = pathSegments[pathSegments.length - 2];
-    // Extraemos documentId y year de la carpeta o del nombre del archivo
     const parts = parentFolder.split('_');
     if (parts.length >= 2) {
       return { documentId: parts[0], year: parts[1] };
     } else {
-      // Si no hay suficiente información en la carpeta, intentamos con el nombre del archivo
       const fileParts = fileName.split('_');
       return { documentId: fileParts[0], year: fileParts[1] };
     }
@@ -58,36 +55,73 @@ const Certificaciones = () => {
       }));
   };
 
+  const verificarYProcesarCostas = async (detalles, documentId, jsonData) => {
+    const costasProcesales = detalles.find(item => item.codigo === '470');
+    const procesosSentencia = detalles.find(item => item.codigo === '475');
+    const retroMesada = detalles.find(item => item.codigo === '476');
+    const nombreUsuario = `${jsonData[0].lblEmpleado} (C.C. ${documentId})`;
+
+    setUsuarioActual(`Procesando: ${nombreUsuario}`); // Mostrar el usuario actual
+
+    if (costasProcesales || procesosSentencia) {
+      const pagoCostasRef = doc(db, 'pagocostas', documentId);
+      
+      const datosPagoCostas = {
+        id: documentId,
+        nombre: nombreUsuario,
+        costasProcesales: costasProcesales ? costasProcesales.ingresos : 0,
+        procesosSentencia: procesosSentencia ? procesosSentencia.ingresos : 0,
+        retroMesadaAdicional: retroMesada ? retroMesada.ingresos : 0,
+        fechaCostas: costasProcesales ? jsonData[0].lblPeriodoPago : "",
+        fechaProcesos: procesosSentencia ? jsonData[0].lblPeriodoPago : "",
+        fechaRetros: retroMesada ? jsonData[0].lblPeriodoPago : "",
+        pnlCentroCosto: jsonData[0].pnlCentroCosto || "",
+        pnlDependencia: jsonData[0].pnlDependencia || "",
+        total: (costasProcesales ? costasProcesales.ingresos : 0) + 
+               (procesosSentencia ? procesosSentencia.ingresos : 0) + 
+               (retroMesada ? retroMesada.ingresos : 0)
+      };
+
+      try {
+        await setDoc(pagoCostasRef, datosPagoCostas, { merge: true });
+        setProcesadosConCostas(prev => [...prev, datosPagoCostas]);
+        setStatus(prev => `${prev}\nProcesado pago especial para: ${nombreUsuario}`);
+        return true;
+      } catch (error) {
+        console.error('Error al guardar datos en pagocostas:', error);
+        return false;
+      }
+    } else {
+      setProcesadosSinCostas(prev => [...prev, nombreUsuario]);
+      setStatus(prev => `${prev}\nUsuario sin pagos especiales: ${nombreUsuario}`);
+    }
+    return false;
+  };
+
   const limpiarDatos = (obj) => {
     return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
   };
 
-  useEffect(() => {
-    if (files.length > 0 && !isProcessing) {
-      subirDatos();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [files]);
-
   const subirDatos = async () => {
     setIsProcessing(true);
     setStatus('Iniciando el procesamiento de archivos...');
+    setProcesadosConCostas([]);
+    setProcesadosSinCostas([]);
+    setUsuarioActual('');
 
     for (let file of files) {
       setCurrentFile(file.webkitRelativePath || file.name);
 
       try {
         const reader = new FileReader();
-        const fileReadPromise = new Promise((resolve) => {
+        await new Promise((resolve) => {
           reader.onload = async (e) => {
             try {
               const jsonData = JSON.parse(e.target.result);
               const { documentId, year } = parseFilePath(file.webkitRelativePath || file.name);
 
               if (!documentId || !year) {
-                console.error(
-                  `No se pudo extraer documentId y year de la ruta: ${file.webkitRelativePath || file.name}`
-                );
+                console.error(`No se pudo extraer documentId y year de la ruta: ${file.webkitRelativePath || file.name}`);
                 resolve();
                 return;
               }
@@ -112,18 +146,9 @@ const Certificaciones = () => {
                 basico: jsonData[0].lblBasico,
                 periodoPago: jsonData[0].lblPeriodoPago,
                 fecha: jsonData[0].lblFecha,
-                hCargo: jsonData[0].lblhCargo,
                 cargo: jsonData[0].lblCargo,
-                pnlNivContratacion: jsonData[0].pnlNivContratacion,
-                nivContratacion: jsonData[0].lblNivContratacion,
-                nivContratacion2: jsonData[0].lblNivContratacion2,
-                hGrado: jsonData[0].lblhGrado,
                 grado: jsonData[0].lblGrado,
-                dtgLiquidacion: jsonData[0].dtgLiquidacion,
-                neto: jsonData[0].lblNeto,
-                pnlMensaje: jsonData[0].pnlMensaje,
-                mensaje: jsonData[0].lblMensaje,
-                fondoSalud: jsonData[0].lblFondos,
+                neto: jsonData[0].lblNeto
               });
 
               if (docSnap.exists()) {
@@ -134,14 +159,16 @@ const Certificaciones = () => {
 
               const batch = writeBatch(db);
 
-              jsonData.forEach((pago) => {
-                // Genera un ID de documento único para cada pago
+              for (const pago of jsonData) {
                 const pagoId = `${pago.lblPeriodoPago}_${pago.lblFecha}`
                   .replace(/[/\\?%*:|"<>]/g, '-')
                   .replace(/\s+/g, '_');
 
                 const pagoRef = doc(db, `pensionados/${documentId}/pagos`, pagoId);
                 const tablaProcesada = procesarTabla(pago.tables[0]);
+
+                // Verificar y procesar costas
+                await verificarYProcesarCostas(tablaProcesada, documentId, jsonData);
 
                 const pagoData = limpiarDatos({
                   periodoPago: pago.lblPeriodoPago,
@@ -154,51 +181,46 @@ const Certificaciones = () => {
                   detalles: tablaProcesada,
                 });
 
-                // Usa { merge: true } para actualizar documentos existentes
                 batch.set(pagoRef, pagoData, { merge: true });
-              });
+              }
 
               await batch.commit();
             } catch (error) {
-              console.error(
-                `Error al procesar el archivo ${file.webkitRelativePath || file.name}: `,
-                error
-              );
+              console.error(`Error al procesar el archivo: `, error);
             } finally {
-              resolve(); // Siempre resolvemos para continuar con el siguiente archivo
+              resolve();
             }
           };
 
           reader.onerror = () => {
-            console.error(`Error de lectura del archivo ${file.webkitRelativePath || file.name}`);
-            resolve(); // Continuamos con el siguiente archivo
+            console.error(`Error de lectura del archivo ${file.name}`);
+            resolve();
           };
-        });
 
-        reader.readAsText(file);
-        await fileReadPromise;
+          reader.readAsText(file);
+        });
       } catch (error) {
-        console.error(
-          `Error general al procesar el archivo ${file.webkitRelativePath || file.name}: `,
-          error
-        );
-        // No detenemos el ciclo, continuamos con el siguiente archivo
+        console.error(`Error general al procesar el archivo: `, error);
       }
     }
 
-    setStatus('Procesamiento completado.');
+    setStatus(prev => `${prev}\nProcesamiento completado.`);
+    setUsuarioActual('');
     setCurrentFile('');
     setIsProcessing(false);
-    setFiles([]); // Limpiamos los archivos después de procesarlos
+    setFiles([]);
   };
+
+  useEffect(() => {
+    if (files.length > 0 && !isProcessing) {
+      subirDatos();
+    }
+  }, [files]);
 
   return (
     <div className="certificaciones-container">
-      <h1>Certificaciones</h1>
-      <p>
-        Selecciona una carpeta que contenga los archivos JSON para subir las certificaciones de los
-        pensionados.
-      </p>
+      <h1>Carga de archivo para la actualizacion de datos </h1>
+      <p>Selecciona una carpeta que contenga los archivos JSON para subir las certificaciones de los pensionados.</p>
       <input
         type="file"
         accept=".json"
@@ -207,8 +229,38 @@ const Certificaciones = () => {
         onChange={handleFileUpload}
         disabled={isProcessing}
       />
-      {status && <p>{status}</p>}
+      {usuarioActual && <p className="usuario-actual">{usuarioActual}</p>}
+      {status && <p className="status-message">{status}</p>}
       {currentFile && <p>Procesando archivo: {currentFile}</p>}
+      
+      <div className="resultados-procesamiento">
+        {procesadosConCostas.length > 0 && (
+          <div className="costas-procesadas">
+            <h3>Usuarios CON pagos especiales:</h3>
+            <ul>
+              {procesadosConCostas.map((pago, index) => (
+                <li key={index} className="pago-costas">
+                  <strong>{pago.nombre}</strong>
+                  <p>Costas Procesales: ${pago.costasProcesales.toLocaleString()}</p>
+                  <p>Procesos y Sentencias: ${pago.procesosSentencia.toLocaleString()}</p>
+                  <p>Total: ${pago.total.toLocaleString()}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {procesadosSinCostas.length > 0 && (
+          <div className="sin-costas">
+            <h3>Usuarios SIN pagos especiales:</h3>
+            <ul>
+              {procesadosSinCostas.map((nombre, index) => (
+                <li key={index}>{nombre}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

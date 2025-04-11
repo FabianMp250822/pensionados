@@ -495,14 +495,15 @@ const ResumenFinanciero = () => {
                   {/* Una celda por cada mes */}
                   {monthNames.map((_, index) => {
                     const monthNumber = index + 1;
-                    // Sumar pagos del usuario en el mes para el año "yearDisplay"
+                    // Modificar el cálculo de pagosMes para evitar duplicados
                     const pagosMes = (usuario.pagos || []).reduce((sum, pago) => {
                       const pagoFecha = new Date(pago.fecha);
                       if (
                         pagoFecha.getFullYear() === parseInt(yearDisplay, 10) &&
                         (pagoFecha.getMonth() + 1) === monthNumber
                       ) {
-                        return sum + parseFloat(pago.montoNeto);
+                        // Solo sumamos el montoNeto una vez
+                        return parseFloat(pago.montoNeto);
                       }
                       return sum;
                     }, 0);
@@ -517,15 +518,13 @@ const ResumenFinanciero = () => {
                       textAlign: 'center'
                     };
 
-                    // Si ya completó el pago total (incluyendo años anteriores), marcar la celda como "Completado"
                     if (cumulative >= salary) {
-                      // Si el mes que completó el pago tiene monto, se muestra ese monto; de lo contrario se muestra "Completado"
-                      if (pagosMes > 0 && (cumulative - pagosMes) < salary) {
+                      if (pagosMes > 0) {
                         displayText = `$${pagosMes.toLocaleString()}`;
                       } else {
                         displayText = 'Completado';
                       }
-                      cellStyle.backgroundColor = '#c8e6c9'; // fondo verde claro
+                      cellStyle.backgroundColor = '#c8e6c9';
                     } else {
                       displayText = pagosMes > 0 ? `$${pagosMes.toLocaleString()}` : 'No Pago';
                       cellStyle.backgroundColor = pagosMes > 0 ? 'transparent' : '#ffe6e6';
@@ -552,6 +551,61 @@ const ResumenFinanciero = () => {
                 </tr>
               );
             })}
+            {/* Después del último usuario, agregar fila de totales */}
+            <tr style={{ 
+              backgroundColor: '#e3f2fd',
+              fontWeight: 'bold',
+              borderTop: '2px solid #1976d2'
+            }}>
+              <td style={{ padding: '10px', border: '1px solid #ddd' }}>
+                Total Mensual
+              </td>
+              {monthNames.map((_, index) => {
+                const monthNumber = index + 1;
+                // Calcular el total de todos los pagos del mes
+                const totalMes = usuarios.reduce((total, usuario) => {
+                  return total + (usuario.pagos || []).reduce((sum, pago) => {
+                    const pagoFecha = new Date(pago.fecha);
+                    if (
+                      pagoFecha.getFullYear() === parseInt(yearDisplay, 10) &&
+                      (pagoFecha.getMonth() + 1) === monthNumber
+                    ) {
+                      return sum + parseFloat(pago.montoNeto);
+                    }
+                    return sum;
+                  }, 0);
+                }, 0);
+
+                return (
+                  <td key={index} style={{
+                    padding: '10px',
+                    border: '1px solid #ddd',
+                    textAlign: 'center',
+                    backgroundColor: totalMes > 0 ? '#e3f2fd' : '#ffe6e6'
+                  }}>
+                    {totalMes > 0 ? `$${totalMes.toLocaleString()}` : 'No Pagos'}
+                  </td>
+                );
+              })}
+              {/* Total anual */}
+              <td style={{
+                padding: '10px',
+                border: '1px solid #ddd',
+                textAlign: 'center',
+                boxShadow: 'inset 0 0 5px rgba(0,0,0,0.2)',
+                backgroundColor: '#e3f2fd'
+              }}>
+                ${usuarios.reduce((total, usuario) => {
+                  return total + (usuario.pagos || []).reduce((sum, pago) => {
+                    const pagoFecha = new Date(pago.fecha);
+                    if (pagoFecha.getFullYear() === parseInt(yearDisplay, 10)) {
+                      return sum + parseFloat(pago.montoNeto);
+                    }
+                    return sum;
+                  }, 0);
+                }, 0).toLocaleString()}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
