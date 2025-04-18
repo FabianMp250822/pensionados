@@ -1,0 +1,213 @@
+/* Contenedor principal que ya tienes */
+.tabla-procesos-contenedor {
+    font-family: Arial, sans-serif;
+    background: #fff;
+    margin: 20px auto;
+    padding: 20px;
+    width: 100%;
+  }
+  
+  .titulo {
+    font-size: 28px; 
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #000; 
+    text-align: center;
+  }
+  
+  .error {
+    color: red;
+    font-size: 18px; 
+    margin-top: 10px;
+  }
+  
+  /* Contenedor de todos los procesos (uno debajo del otro) */
+  .procesos-container {
+    display: grid;
+    grid-template-columns: 1fr; /* una sola columna para cada proceso */
+    gap: 20px;
+  }
+  
+  .proceso-card {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+  }
+  
+  .proceso-header {
+    font-size: 22px; 
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #000; 
+  }
+  
+  /* Bloque de datos del proceso en formato 2 columnas */
+  .datos-proceso {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* dos columnas */
+    gap: 15px 40px; /* 15px vertical, 40px horizontal */
+    margin-bottom: 20px;
+  }
+  
+  /* Cada campo (fila) dentro de .datos-proceso */
+  .dato {
+    display: flex;
+    flex-direction: column; /* etiqueta arriba, valor abajo */
+  }
+  
+  /* Etiquetas y valores */
+  .dato label {
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+  }
+  
+  .dato span,
+  .dato input {
+    color: #333;
+    font-size: 16px;
+  }
+  
+  /* Ajustes responsive: en pantallas pequeñas, 1 columna */
+  @media (max-width: 768px) {
+    .datos-proceso {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+ 
+  
+  .boton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin: 5px 5px 0 0;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+  
+  .boton:hover {
+    background-color: #0056b3;
+  }
+  
+  .boton-editar {
+    background-color: #28a745; 
+  }
+  
+  .boton-editar:hover {
+    background-color: #218838; 
+  }
+  
+  .boton-guardar {
+    background-color: #ffc107;
+    color: #000;
+  }
+  
+  .boton-guardar:hover {
+    background-color: #e0a800;
+  }
+  
+  .boton-cancelar {
+    background-color: #dc3545;
+  }
+  
+  .boton-cancelar:hover {
+    background-color: #c82333;
+  }
+  
+  .boton-ver-demandantes,
+  .boton-ver-anotaciones,
+  .boton-ver-anexos {
+    background-color: #6c757d;
+  }
+  
+  .boton-ver-demandantes:hover,
+  .boton-ver-anotaciones:hover,
+  .boton-ver-anexos:hover {
+    background-color: #5a6268;
+  }
+  
+  /* Input de texto en modo edición */
+  input {
+    width: 100%;
+    padding: 6px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  /* Buscador */
+  .buscador {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .buscador-input {
+    grid-column: 3; 
+    padding-right: 30px;
+  }
+  
+  .buscador-boton {
+    grid-column: 4; 
+    margin-left: 60px;
+  }
+  
+  .buscador input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  
+  .buscador button {
+    width: 100%;
+    padding: 8px;
+    cursor: pointer;
+  }
+  
+  /* Estado "no-procesos" */
+  .no-procesos {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .boton-crear-proceso {
+    background-color: #17a2b8;
+    color: #fff;
+    margin-top: 10px;
+  }
+  
+  .boton-crear-proceso:hover {
+    background-color: #138496;
+  }
+  
+
+  #botones-container {
+    display: flex !important;
+    flex-wrap: nowrap !important; /* Evita el salto de línea */
+    gap: 10px !important;         /* Espaciado entre botones */
+    justify-content: center !important; /* Centrado horizontal */
+  }
+  
+  #buscador-container {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  
+  /* En pantallas pequeñas, cambia a columna para que queden uno debajo del otro */
+  @media (max-width: 768px) {
+    .botones-container {
+      flex-direction: column;
+      align-items: stretch; /* Ancho completo */
+    }
+  }
+  

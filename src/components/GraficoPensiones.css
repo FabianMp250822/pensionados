@@ -1,0 +1,57 @@
+/* Estilos para el contenedor de botones */
+#button-container {
+  display: flex !important;
+  justify-content: space-around !important;
+  margin-bottom: 20px !important;
+}
+
+/* Estilos para los botones */
+#btn-liquidacion,
+#btn-funcion2,
+#btn-funcion3,
+#btn-funcion4 {
+  background-color: #009879 !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  margin: 5px !important;
+  cursor: pointer !important;
+  font-size: 1em !important;
+}
+
+#btn-liquidacion:hover,
+#btn-funcion2:hover,
+#btn-funcion3:hover,
+#btn-funcion4:hover {
+  background-color: #007c63 !important;
+}
+
+/* Estilos para la tabla (usando id) */
+#styled-table {
+  border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 0.95em;
+  font-family: sans-serif;
+  width: 100%;
+  border: 1px solid #dddddd;
+}
+
+#styled-table thead tr {
+  background-color: #009879;
+  color: #ffffff;
+  text-align: left;
+}
+
+#styled-table th,
+#styled-table td {
+  padding: 12px 15px;
+  border: 1px solid #dddddd;
+}
+
+#styled-table tbody tr:nth-of-type(even) {
+  background-color: #f9f9f9;
+}
+
+#styled-table tbody tr:hover {
+  background-color: #f1f1f1;
+}

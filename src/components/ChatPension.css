@@ -1,0 +1,89 @@
+/* Estilos generales del chat */
+.chat-window {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  /* Estilo para los mensajes del usuario */
+  .user-message {
+    text-align: right;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #0084ff;
+    color: white;
+    border-radius: 10px;
+    max-width: 80%;
+    margin-left: auto;
+    white-space: pre-wrap;
+  }
+  
+  /* Estilo para los mensajes de la IA */
+  .ia-message {
+    text-align: left;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #e5e5ea;
+    border-radius: 10px;
+    max-width: 80%;
+    white-space: pre-wrap;
+  }
+  
+  /* Estilo para los títulos y subtítulos de las respuestas */
+  .ia-message strong {
+    color: #333;
+    font-weight: 600;
+  }
+  
+  /* Estilo para las listas en las respuestas */
+  .ia-message ul {
+    padding-left: 20px;
+    list-style-type: disc;
+    margin: 10px 0;
+  }
+  
+  /* Estilo para los elementos de lista */
+  .ia-message li {
+    margin-bottom: 5px;
+  }
+  
+  /* Estilos para el input y botón de enviar */
+  input {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    margin-right: 10px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #0084ff;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  
+  button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  .ia-message strong {
+    font-weight: bold;
+  }
+  
+  .ia-message ul {
+    list-style-type: disc;
+    margin-left: 20px;
+  }
+  
+  .ia-message li {
+    margin-bottom: 5px;
+  }
+  

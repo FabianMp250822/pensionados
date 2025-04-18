@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "pensionados-d82b2",
+    "dajustica": "pensionados-d82b2",
+    "pensionados": "pensionados-d82b2"
+  },
+  "targets": {},
+  "etags": {}
+}

@@ -1,0 +1,73 @@
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5;
+  }
+  
+  .card-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .login-logo {
+    width: 300px; /* Ajustar tamaño del logo */
+    margin-bottom: 20px;
+  }
+  
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  .login-card h2 {
+    margin-bottom: 20px;
+  }
+  
+  .login-card input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+  
+  .login-card button {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #0077c8;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .google-login-button {
+    background-color: #db4437;
+    margin-top: 10px;
+  }
+  
+  .toggle-button {
+    background-color: transparent;
+    border: none;
+    color: #0077c8;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 14px;
+  }
+  
+  .instructions {
+    margin-top: 15px;
+    color: #555;
+    font-size: 14px;
+  }
+  
