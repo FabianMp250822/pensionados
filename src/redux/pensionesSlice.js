@@ -15,15 +15,30 @@ const pensionesSlice = createSlice({
       state.usuarioSeleccionado = action.payload;
     },
     setPensiones: (state, action) => {
-      // Filtramos duplicados: Si ya existe un pago con el mismo año y periodoPago, lo descartamos.
+      // Filtramos duplicados y extraemos descuento de salud
       const uniquePayments = [];
+      const seen = new Set(); // Para rastrear combinaciones de año y periodoPago
+
       action.payload.forEach(item => {
-        const exists = uniquePayments.some(p => p.año === item.año && p.periodoPago === item.periodoPago);
-        if (!exists) {
-          uniquePayments.push(item);
+        const key = `${item.año}-${item.periodoPago}`;
+        if (!seen.has(key)) {
+          // Extraer el descuento de salud (código 1001)
+          const detalleSalud = item.detalles?.find(
+            // Puedes ajustar la condición si el nombre o código varía
+            detalle => detalle.codigo === '1001' || detalle.nombre?.includes('Descuento Salud')
+          );
+          // Asegúrate de que la propiedad se llame 'descuentos' o ajusta según tu estructura de datos
+          const descuentoSaludValor = detalleSalud?.descuentos || 0;
+
+          // Añadir el descuento al objeto del item antes de guardarlo
+          uniquePayments.push({
+            ...item,
+            descuentoSalud: descuentoSaludValor // Añadimos el nuevo campo
+          });
+          seen.add(key); // Marcar como visto
         }
       });
-      console.log('setPensiones payload (filtrado):', uniquePayments);
+      console.log('setPensiones payload (filtrado y con descuento salud):', uniquePayments);
       state.pensiones = uniquePayments;
     },
     setLoading: (state, action) => {

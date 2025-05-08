@@ -6,6 +6,7 @@ import {
   doc,
   setDoc,
   writeBatch,
+  updateDoc,
 } from 'firebase/firestore';
 import './PagosEspecificos.css';
 
@@ -141,8 +142,9 @@ const PagosEspecificos = () => {
         // Usar un Set para registrar combinaciones únicas de periodoPago y valorNeto
         const periodosProcesados = new Set();
   
-        pagosSnapshot.docs.forEach((doc) => {
-          const pago = doc.data();
+        for (const pagoDoc of pagosSnapshot.docs) {
+          const pago = pagoDoc.data();
+          if (pago.procesado) continue;
   
           if (Array.isArray(pago.detalles)) {
             pago.detalles.forEach((detalle) => {
@@ -166,7 +168,9 @@ const PagosEspecificos = () => {
               }
             });
           }
-        });
+  
+          await updateDoc(pagoDoc.ref, { procesado: true });
+        }
   
         if (totalCostas > 0 || totalRetros > 0 || totalProcesos > 0) {
           const resultadoUsuario = {
@@ -231,32 +235,32 @@ const PagosEspecificos = () => {
 
   // Filtrar resultados según búsqueda, dependencia y centro de costo
   const formatoFecha = (fecha) => {
-    if (!fecha) return 'N/A';
-  
-    // Busca patrones como "1 jun. 2022 a 30 jun. 2022"
+    if (!fecha) return ''; 
     const regex = /\d+\s(\w+)\.\s(\d{4})/;
     const match = fecha.match(regex);
-  
     if (match) {
-      const [, mes, año] = match; // Extrae el mes y el año
-      return `${mes.charAt(0).toUpperCase() + mes.slice(1)} ${año}`; // Capitaliza el mes
+      const [, mes, año] = match;
+      return `${mes.charAt(0).toUpperCase() + mes.slice(1)} ${año}`;
     }
-  
-    return 'Fecha no válida';
+    return '';
   };
 
-    const resultadosFiltrados = resultados
-    .filter(
-      (resultado) =>
-        resultado.nombre.toLowerCase().includes(busqueda.toLowerCase()) &&
-        (dependenciaSeleccionada === '' || resultado.pnlDependencia === dependenciaSeleccionada) &&
-        (centroCostoSeleccionado === '' || resultado.pnlCentroCosto === centroCostoSeleccionado) &&
-        (filtroFechaCostas.mes === '' || formatoFecha(resultado.fechaCostas).includes(filtroFechaCostas.mes)) &&
-        (filtroFechaCostas.año === '' || formatoFecha(resultado.fechaCostas).includes(filtroFechaCostas.año)) &&
-        (filtroFechaRetros.mes === '' || formatoFecha(resultado.fechaRetros).includes(filtroFechaRetros.mes)) &&
-        (filtroFechaRetros.año === '' || formatoFecha(resultado.fechaRetros).includes(filtroFechaRetros.año)) &&
-        (filtroFechaProcesos.mes === '' || formatoFecha(resultado.fechaProcesos).includes(filtroFechaProcesos.mes)) &&
-        (filtroFechaProcesos.año === '' || formatoFecha(resultado.fechaProcesos).includes(filtroFechaProcesos.año))
+  const cumpleFiltroFecha = (fecha, filtro) => {
+    if (!filtro.mes && !filtro.año) return true;
+    const f = formatoFecha(fecha);
+    if (filtro.mes && !f.includes(filtro.mes)) return false;
+    if (filtro.año && !f.includes(filtro.año)) return false;
+    return true;
+  };
+
+  const resultadosFiltrados = resultados
+    .filter((resultado) =>
+      resultado.nombre.toLowerCase().includes(busqueda.toLowerCase()) &&
+      (dependenciaSeleccionada === '' || resultado.pnlDependencia === dependenciaSeleccionada) &&
+      (centroCostoSeleccionado === '' || resultado.pnlCentroCosto === centroCostoSeleccionado) &&
+      cumpleFiltroFecha(resultado.fechaCostas, filtroFechaCostas) &&
+      cumpleFiltroFecha(resultado.fechaRetros, filtroFechaRetros) &&
+      cumpleFiltroFecha(resultado.fechaProcesos, filtroFechaProcesos)
     )
     .sort((a, b) => {
       if (columnaOrden === 'nombre') {
@@ -264,7 +268,9 @@ const PagosEspecificos = () => {
           ? a.nombre.localeCompare(b.nombre)
           : b.nombre.localeCompare(a.nombre);
       } else {
-        return orden === 'asc' ? a[columnaOrden] - b[columnaOrden] : b[columnaOrden] - a[columnaOrden];
+        return orden === 'asc'
+          ? a[columnaOrden] - b[columnaOrden]
+          : b[columnaOrden] - a[columnaOrden];
       }
     });
   

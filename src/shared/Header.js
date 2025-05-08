@@ -85,6 +85,12 @@ const Header = ({ handleLogout }) => {
                   Contabilidad
                 </NavLink>
               </li>
+              {/* Nueva opción para ChatLegal */}
+              <li>
+                <NavLink to="/consulta-legal" onClick={() => setMenuOpen(false)}>
+                  Asistente Legal
+                </NavLink>
+              </li>
               <li>
               <NavLink
                   to="#"

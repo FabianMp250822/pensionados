@@ -31,6 +31,7 @@ import SubirDatosNoRelacionados from './admin/subirdatosnorelacionados';
 import DocumentosSoporte from './components/DocumentosSoporte';
 import ProtectedRoute from './auth/ProtectedRoute';
 import Unauthorized from './auth/Unauthorized';
+import ChatLegal from './components/ChatLegal';
 
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -177,6 +178,14 @@ function App() {
                   element={
                     <ProtectedRoute requiredRole={["administrador", "contable"]}>
                       <DocumentosSoporte />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/consulta-legal"
+                  element={
+                    <ProtectedRoute requiredRole={["administrador", "contable", "usuario"]}>
+                      <ChatLegal />
                     </ProtectedRoute>
                   }
                 />

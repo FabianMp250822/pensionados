@@ -479,3 +479,308 @@ Equipo Dajusticia
     console.error("Error al enviar el contrato:", error);
   }
 });
+
+// ============================
+// Función Firestore (Trigger): organizarDocumentosUsuario
+// Se dispara cuando se crea un documento en extractedText
+// ============================
+exports.organizarDocumentosUsuario = onDocumentCreated(
+    "extractedText/{docId}",
+    async (event) => {
+      try {
+        // Verificar que tenemos datos
+        if (!event || !event.data) {
+          console.error("El evento no contiene datos");
+          return;
+        }
+
+        const docId = event.params.docId;
+        const docData = event.data.data();
+
+        console.log(`Procesando nuevo documento en extractedText. ID: ${docId}`);
+        console.log("Datos del documento:", JSON.stringify(docData));
+
+        // Validar que tenemos data
+        if (!docData) {
+          console.error(`No hay datos en el documento ${docId}`);
+          return;
+        }
+
+        // Procesar documento
+        await procesarDocumentoUsuario(docId, docData);
+        console.log(`Documento ${docId} procesado exitosamente`);
+      } catch (error) {
+        console.error(`Error procesando documento en trigger: ${error.message}`);
+        console.error("Stack trace:", error.stack);
+      }
+    },
+);
+
+// ============================
+// Función HTTP: procesarDocumentosExistentes
+// Procesa todos los documentos de extractedText que no están organizados
+// ============================
+exports.procesarDocumentosExistentes = onRequest(async (req, res) => {
+  // Configuración CORS
+  if (req.method === "OPTIONS") {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(204).send("");
+  }
+
+  res.set("Access-Control-Allow-Origin", "*");
+
+  try {
+    console.log("Iniciando procesamiento de documentos existentes...");
+    const snapshot = await admin.firestore().collection("extractedText").get();
+
+    if (snapshot.empty) {
+      return res.status(200).json({
+        success: true,
+        message: "No hay documentos para procesar",
+        count: 0,
+      });
+    }
+
+    const resultados = {
+      total: snapshot.size,
+      procesados: 0,
+      errores: 0,
+      detalles: [],
+    };
+
+    // Procesar documentos en serie para evitar sobrecargar Firestore
+    for (const doc of snapshot.docs) {
+      try {
+        const docId = doc.id;
+        const docData = doc.data();
+
+        console.log(`Procesando documento ${docId}`);
+
+        // Validar si ya tiene documentoUsuario
+        if (docData.documentoUsuario) {
+          console.log(`Documento ${docId} ya tiene documentoUsuario: ${docData.documentoUsuario}`);
+        } else if (docData.file) {
+          console.log(`Documento ${docId} no tiene documentoUsuario, intentando extraer de file: ${docData.file}`);
+        } else {
+          console.log(`Documento ${docId} no tiene documentoUsuario ni file`);
+        }
+
+        await procesarDocumentoUsuario(docId, docData);
+        resultados.procesados++;
+        resultados.detalles.push({
+          id: docId,
+          resultado: "procesado",
+          userId: docData.documentoUsuario || extractUserIdFromFilePath(docData.file) || "No identificado",
+        });
+      } catch (error) {
+        resultados.errores++;
+        resultados.detalles.push({
+          id: doc.id,
+          error: error.message,
+          stack: error.stack,
+          resultado: "error",
+        });
+        console.error(`Error procesando documento ${doc.id}:`, error);
+      }
+    }
+
+    console.log(`Procesamiento completo: ${resultados.procesados} exitosos, ${resultados.errores} fallidos`);
+    return res.status(200).json({
+      success: true,
+      message: "Procesamiento completado",
+      resultados,
+    });
+  } catch (error) {
+    console.error("Error en el procesamiento masivo:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error procesando documentos",
+      error: error.message,
+      stack: error.stack,
+    });
+  }
+});
+
+// ============================
+// Función auxiliar para procesar un documento
+// ============================
+/**
+ * Procesa un documento de extractedText para asociarlo a un usuario
+ * @param {string} docId - ID del documento en la colección extractedText
+ * @param {Object} data - Datos del documento
+ * @return {Promise<void>} - Promesa que se resuelve cuando el documento ha sido procesado
+ */
+async function procesarDocumentoUsuario(docId, data) {
+  try {
+    // Obtener ID de usuario
+    let userId = data.documentoUsuario;
+
+    // Si no hay documentoUsuario, extraerlo del campo file
+    if (!userId && data.file) {
+      userId = extractUserIdFromFilePath(data.file);
+    }
+
+    if (!userId) {
+      console.warn(`No se pudo determinar el ID de usuario para el documento ${docId}`);
+      return;
+    }
+
+    console.log(`ID de usuario determinado para documento ${docId}: ${userId}`);
+
+    // Actualizar o crear documento en relaciondocumental
+    await updateRelacionDocumental(userId, docId, data);
+
+    // Si el documento no tenía documentoUsuario, actualizarlo
+    if (!data.documentoUsuario && userId) {
+      await updateDocumentoUsuario(docId, userId);
+    }
+
+    console.log(`Documento ${docId} procesado correctamente para usuario ${userId}`);
+
+    return userId; // Devolver el ID de usuario para seguimiento
+  } catch (error) {
+    console.error(`Error en procesarDocumentoUsuario para ${docId}: ${error.message}`);
+    throw error; // Propagar el error para que sea manejado por la función que llama
+  }
+}
+
+// ============================
+// Extraer ID de usuario del nombre del archivo
+// ============================
+/**
+ * Extrae el ID de usuario del nombre del archivo
+ * @param {string} filePath - Ruta completa del archivo
+ * @return {string|null} - ID de usuario o null si no se pudo extraer
+ */
+function extractUserIdFromFilePath(filePath) {
+  try {
+    if (!filePath) return null;
+
+    console.log(`Intentando extraer ID de usuario de: ${filePath}`);
+
+    // Obtener solo el nombre del archivo (sin la ruta)
+    const fileName = filePath.split("/").pop();
+    if (!fileName) return null;
+
+    console.log(`Nombre del archivo: ${fileName}`);
+
+    // Buscar patrón _NUMERO_ en el nombre
+    // Esto capturará cualquier secuencia de dígitos entre dos guiones bajos
+    const matches = fileName.match(/_(\d+)_/);
+
+    if (matches && matches.length > 1) {
+      const userId = matches[1];
+      console.log(`ID de usuario extraído: ${userId}`);
+      return userId; // Devolver el grupo capturado (solo los dígitos)
+    }
+
+    // Si no encuentra el patrón _NUMERO_, buscar otras posibilidades
+    // Por ejemplo, números al principio del nombre
+    const alternativeMatches = fileName.match(/^(\d+)/);
+    if (alternativeMatches && alternativeMatches.length > 1) {
+      const userId = alternativeMatches[1];
+      console.log(`ID alternativo extraído: ${userId}`);
+      return userId;
+    }
+
+    console.log("No se pudo extraer ID de usuario del nombre del archivo");
+    return null;
+  } catch (error) {
+    console.error(`Error extrayendo ID de usuario: ${error.message}`);
+    return null;
+  }
+}
+
+// ============================
+// Actualizar o crear documento en colección relaciondocumental
+// ============================
+/**
+ * Actualiza o crea un documento en la colección relaciondocumental
+ * @param {string} userId - ID del usuario
+ * @param {string} docId - ID del documento en extractedText
+ * @param {Object} data - Datos del documento
+ * @return {Promise<void>} - Promesa que se resuelve cuando el documento ha sido actualizado
+ */
+async function updateRelacionDocumental(userId, docId, data) {
+  try {
+    const docRef = admin.firestore().collection("relaciondocumental").doc(userId);
+
+    // Crear fecha como string ISO en lugar de usar serverTimestamp dentro del array
+    const fechaActual = new Date().toISOString();
+
+    // Extraer el contenido de texto del documento
+    const textoDocumento = data.text || "Sin contenido textual";
+
+    // Crear o actualizar atómicamente el documento
+    await docRef.set({
+      idUsuario: userId,
+      ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(), // Esto está bien, está fuera del array
+      documentos: admin.firestore.FieldValue.arrayUnion({
+        id: docId,
+        file: data.file || null,
+        fecha: data.createdAt || fechaActual, // Usar fecha string en lugar de serverTimestamp
+        nombre: extractFileNameFromPath(data.file),
+        texto: textoDocumento, // Agregar el texto del documento
+      }),
+      // También almacenar el contenido textual en una matriz separada para búsquedas
+      contenidoTextual: admin.firestore.FieldValue.arrayUnion({
+        docId: docId,
+        texto: textoDocumento,
+      }),
+      // Agregar contador
+      cantidadDocumentos: admin.firestore.FieldValue.increment(1),
+    }, {merge: true});
+
+    console.log(`Documento ${docId} agregado a relaciondocumental para usuario ${userId} con texto incluido`);
+  } catch (error) {
+    console.error(`Error actualizando relaciondocumental para usuario ${userId}:`, error);
+    throw error;
+  }
+}
+
+// ============================
+// Actualizar campo documentoUsuario en extractedText
+// ============================
+/**
+ * Actualiza el campo documentoUsuario en un documento de extractedText
+ * @param {string} docId - ID del documento en extractedText
+ * @param {string} userId - ID del usuario
+ * @return {Promise<void>} - Promesa que se resuelve cuando el documento ha sido actualizado
+ */
+async function updateDocumentoUsuario(docId, userId) {
+  try {
+    await admin.firestore().collection("extractedText").doc(docId).update({
+      documentoUsuario: userId,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    console.log(`Campo documentoUsuario actualizado en documento ${docId}`);
+  } catch (error) {
+    console.error(`Error actualizando documentoUsuario en ${docId}:`, error);
+    throw error;
+  }
+}
+
+// ============================
+// Extraer nombre de archivo de una ruta
+// ============================
+/**
+ * Extrae el nombre del archivo de una ruta completa
+ * @param {string} filePath - Ruta completa del archivo
+ * @return {string} - Nombre del archivo o texto predeterminado si no se pudo extraer
+ */
+function extractFileNameFromPath(filePath) {
+  if (!filePath) return "Documento sin nombre";
+
+  const fileName = filePath.split("/").pop();
+  if (!fileName) return "Documento sin nombre";
+
+  // Decodificar caracteres especiales en el nombre si es necesario
+  try {
+    return decodeURIComponent(fileName);
+  } catch {
+    return fileName;
+  }
+}
