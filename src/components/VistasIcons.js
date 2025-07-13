@@ -5,7 +5,8 @@ import {
   FaMoneyCheckAlt, 
   FaFileInvoiceDollar, 
   FaCertificate, 
-  FaSearch 
+  FaSearch,
+  FaFileAlt 
 } from 'react-icons/fa';
 import './VistasIcons.css';
 
@@ -39,6 +40,13 @@ const VistasIcons = ({ vistaSeleccionada, setVistaSeleccionada }) => {
       >
         <FaCertificate size={32} />
         <span>Certificado</span>
+      </div>
+      <div 
+        className={`vistas-icon-item ${vistaSeleccionada === 'Anexo 2' ? 'active' : ''}`}
+        onClick={() => setVistaSeleccionada('Anexo 2')}
+      >
+        <FaFileAlt size={32} />
+        <span>Anexo 2</span>
       </div>
       <div 
         className={`vistas-icon-item ${vistaSeleccionada === 'Consulta procesos' ? 'active' : ''}`}

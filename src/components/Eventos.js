@@ -6,6 +6,7 @@ import VisorFacturas from './visorfacturas';
 import TablaPrimerasMesadas from './TablaPrimerasMesadas';
 import TablaProcesos from './TablaProcesos';
 import VistasIcons from './VistasIcons';
+import Anexo2 from './Anexo2';
 
 import { useSelector, useDispatch } from 'react-redux';
 import './Eventos.css';
@@ -475,6 +476,8 @@ const Eventos = () => {
                 />
               ) : vistaSeleccionada === 'Certificado Pensional' ? (
                 <TablaPrimerasMesadas />
+              ) : vistaSeleccionada === 'Anexo 2' ? (
+                <Anexo2 usuarioSeleccionado={usuarioSeleccionado} />
               ) : (
                 <p></p>
               )}

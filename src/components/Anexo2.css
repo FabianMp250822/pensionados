@@ -1,0 +1,425 @@
+/* Anexo2.css */
+
+.anexo2-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.anexo2-container h2 {
+  text-align: center;
+  color: #333;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  border-left: 4px solid #007bff;
+}
+
+.tabla-container {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.tabla-anexo2 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.tabla-anexo2 th,
+.tabla-anexo2 td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.tabla-anexo2 thead th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #333;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tabla-anexo2 thead th:nth-child(1),
+.tabla-anexo2 thead th:nth-child(3),
+.tabla-anexo2 thead th:nth-child(5),
+.tabla-anexo2 thead th:nth-child(6),
+.tabla-anexo2 thead th:nth-child(7),
+.tabla-anexo2 thead th:nth-child(8) {
+  background-color: #e9ecef;
+}
+
+.tabla-anexo2 thead th:nth-child(3) {
+  background-color: #d4edda; /* Verde claro para destacar la columna de pagos reales */
+  color: #155724;
+  font-weight: bold;
+}
+
+.tabla-anexo2 thead th:nth-child(5) {
+  background-color: #cce5ff; /* Azul claro para destacar la columna de proyección dinámica */
+  color: #004085;
+  font-weight: bold;
+}
+
+.tabla-anexo2 thead th:nth-child(6) {
+  background-color: #fff3cd; /* Amarillo claro para destacar el porcentaje dinámico */
+  color: #856404;
+  font-weight: bold;
+}
+
+.tabla-anexo2 thead th:nth-child(7) {
+  background-color: #d1ecf1; /* Azul cyan para mesada pagada con IPCs */
+  color: #0c5460;
+  font-weight: bold;
+}
+
+.tabla-anexo2 thead th:nth-child(8) {
+  background-color: #f8d7da; /* Rosa claro para # de SMLMV en reajuste */
+  color: #721c24;
+  font-weight: bold;
+}
+
+.tabla-anexo2 tbody td:nth-child(3) {
+  background-color: #f8fff9; /* Fondo verde muy claro para datos reales */
+  font-weight: 600;
+  color: #28a745;
+}
+
+.tabla-anexo2 tbody td:nth-child(5) {
+  background-color: #f0f8ff; /* Fondo azul muy claro para proyección dinámica */
+  font-weight: 600;
+  color: #0056b3;
+}
+
+.tabla-anexo2 tbody td:nth-child(6) {
+  background-color: #fffbf0; /* Fondo amarillo muy claro para porcentaje dinámico */
+  font-weight: 600;
+  color: #b8860b;
+}
+
+.tabla-anexo2 tbody td:nth-child(7) {
+  background-color: #e2f3f5; /* Fondo cyan muy claro para mesada pagada con IPCs */
+  font-weight: 600;
+  color: #0c5460;
+}
+
+.tabla-anexo2 tbody td:nth-child(8) {
+  background-color: #f5c6cb; /* Fondo rosa muy claro para # de SMLMV en reajuste */
+  font-weight: 600;
+  color: #721c24;
+}
+
+.tabla-anexo2 tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.tabla-anexo2 tbody tr:hover {
+  background-color: #e3f2fd;
+}
+
+.tabla-anexo2 tbody td {
+  font-size: 11px;
+}
+
+.tabla-anexo2 tbody td:nth-child(1) {
+  font-weight: bold;
+  background-color: #f1f3f4;
+}
+
+.tabla-anexo2 tbody td:nth-child(2),
+.tabla-anexo2 tbody td:nth-child(4),
+.tabla-anexo2 tbody td:nth-child(7),
+.tabla-anexo2 tbody td:nth-child(9),
+.tabla-anexo2 tbody td:nth-child(11) {
+  text-align: right;
+}
+
+.total-row td {
+  background-color: #e9ecef !important;
+  font-weight: bold !important;
+  font-size: 13px !important;
+}
+
+.nota-reajuste {
+  margin-top: 30px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  border-left: 4px solid #28a745;
+}
+
+.nota-reajuste h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+/* Información del usuario */
+.usuario-info-anexo2 {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.usuario-info-anexo2 .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.usuario-info-anexo2 .label {
+  font-weight: bold;
+  color: #495057;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.usuario-info-anexo2 .value {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Sección de Datos Disponibles */
+.datos-disponibles {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #e8f5e8;
+  border-radius: 5px;
+  border-left: 3px solid #28a745;
+}
+
+.datos-disponibles h4 {
+  color: #155724;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.datos-disponibles p {
+  margin: 5px 0;
+  color: #333;
+}
+
+.periodos-muestra {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Estilo para cuando no hay datos */
+.sin-datos {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8d7da;
+  border-radius: 5px;
+  border-left: 3px solid #dc3545;
+}
+
+.sin-datos p {
+  color: #721c24;
+  margin: 0;
+}
+
+/* Estilos para el mensaje de sin datos */
+.sin-datos-mensaje {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: 40px 20px;
+}
+
+.alerta-sin-datos {
+  background-color: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: 10px;
+  padding: 30px;
+  max-width: 600px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.alerta-sin-datos h3 {
+  color: #856404;
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+
+.alerta-sin-datos p {
+  color: #856404;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.alerta-sin-datos p:last-child {
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+/* Estilos para el detalle de conceptos */
+.detalle-conceptos {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  border-left: 4px solid #28a745;
+}
+
+.conceptos-por-año {
+  margin-top: 10px;
+}
+
+.año-detalle {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: white;
+  border-radius: 3px;
+  border: 1px solid #dee2e6;
+}
+
+.año-detalle h5 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.lista-conceptos {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.lista-conceptos li {
+  margin-bottom: 5px;
+  padding: 5px;
+  background-color: #f8f9fa;
+  border-radius: 3px;
+  font-size: 0.9rem;
+}
+
+.concepto {
+  display: inline-block;
+  margin-left: 10px;
+  color: #6c757d;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .anexo2-container {
+    padding: 10px;
+  }
+  
+  .anexo2-container h2 {
+    font-size: 1.2rem;
+    padding: 10px;
+  }
+  
+  .usuario-info-anexo2 {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .tabla-anexo2 {
+    font-size: 10px;
+  }
+  
+  .tabla-anexo2 th,
+  .tabla-anexo2 td {
+    padding: 4px;
+  }
+}
+
+/* Estilo para números negativos o destacados */
+.tabla-anexo2 .negativo {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.tabla-anexo2 .positivo {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.resumen-pagos-enero {
+  margin: 15px 0;
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 3px;
+  border: 1px solid #d4edda;
+}
+
+.resumen-pagos-enero ul {
+  margin: 10px 0;
+  padding-left: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.resumen-pagos-enero li {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.calculo-base {
+  margin: 15px 0;
+  padding: 10px;
+  background-color: #fff3cd;
+  border-radius: 3px;
+  border: 1px solid #ffeeba;
+  border-left: 3px solid #ffc107;
+}
+
+.calculo-base strong {
+  color: #856404;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.calculo-base p {
+  margin: 5px 0;
+  color: #856404;
+  font-size: 0.9rem;
+}
+
+.ejemplo-calculo {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 3px;
+  border: 1px solid #ffd700;
+}
+
+.ejemplo-calculo p {
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.ejemplo-calculo ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.ejemplo-calculo li {
+  margin: 5px 0;
+  font-size: 0.85rem;
+  color: #666;
+}
