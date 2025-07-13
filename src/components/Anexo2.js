@@ -1,96 +1,96 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import './Anexo2.css';
-import { usePensionData } from '../hooks/usePensionData';
-import { usePensionCalculations } from '../hooks/usePensionCalculations';
-import { useProyeccionDinamica } from '../hooks/useProyeccionDinamica';
-import TablaProyeccionPrincipal from './TablaProyeccionPrincipal';
-import TablaComparticionMesada from './TablaComparticionMesada';
-import TablaProyeccionContinuada from './TablaProyeccionContinuada';
-import NotaReajuste from './NotaReajuste';
-import { formatearPagoReal } from '../utils/pensionFormatters';
 
 const Anexo2 = ({ usuarioSeleccionado }) => {
-  const { pensionesUnicas, pagosFinales } = usePensionData();
-  const calculationUtils = usePensionCalculations(pagosFinales);
-  const { 
-    datosConProyeccionTabla1, 
-    datosConProyeccionTabla3 
-  } = useProyeccionDinamica(calculationUtils, pagosFinales);
+  // Obtener los datos de pensiones del estado Redux
+  const { pensiones } = useSelector((state) => state.pensiones);
 
-  // Si no hay datos reales, mostrar mensaje
-  if (!datosConProyeccionTabla1) {
-    return (
-      <div className="anexo2-container">
-        <h2>PROYECCIÓN COMPARATIVA DE LA MESADA CONVENCIONAL CON INCREMENTOS DE SMLMV E IPC</h2>
-        
-        {usuarioSeleccionado && (
-          <div className="usuario-info-anexo2">
-            <div className="info-item">
-              <span className="label">Cédula:</span>
-              <span className="value">{usuarioSeleccionado.documento}</span>
-            </div>
-            <div className="info-item">
-              <span className="label">Nombre:</span>
-              <span className="value">{usuarioSeleccionado.nombre}</span>
-            </div>
-          </div>
-        )}
-        
-        <div className="sin-datos-mensaje">
-          <div className="alerta-sin-datos">
-            <h3>⚠️ No hay datos de pagos disponibles</h3>
-            <p>Para generar la proyección comparativa es necesario tener al menos un registro de pago del año 1999 (o año inicial de la pensión).</p>
-            <p>Este usuario no tiene registros de pagos en el sistema, por lo que no es posible calcular las proyecciones dinámicas.</p>
-            <p><strong>Por favor contacte al administrador para cargar los datos de pagos históricos.</strong></p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Función para deduplicar pagos por año y período exacto
+  const deduplicarPagos = (pagos) => {
+    console.log(`🔍 Iniciando deduplicación de ${pagos.length} pagos...`);
+    
+    const pagosUnicos = [];
+    const vistosMap = new Map();
+    const duplicadosEliminados = [];
 
-  return (
-    <div className="anexo2-container">
-      <h2>PROYECCIÓN COMPARATIVA DE LA MESADA CONVENCIONAL CON INCREMENTOS DE SMLMV E IPC</h2>
+    pagos.forEach((pago, index) => {
+      // Usar el periodoPago EXACTO como está, sin normalización
+      // Ejemplo: "16 ago. 2013 a 31 ago. 2013"
+      const periodoExacto = pago.periodoPago?.trim() || 'sin-periodo';
+
+      // Obtener el valor de la mesada principal
+      let valorMesada = 0;
+      if (pago.detalles && Array.isArray(pago.detalles)) {
+        const mesadaDetalle = pago.detalles.find(det => 
+          det.nombre?.toLowerCase().includes('mesada pensional') || 
+          det.nombre?.toLowerCase().includes('mesada') ||
+          det.codigo === 'MESAD'
+        );
+        if (mesadaDetalle) {
+          valorMesada = mesadaDetalle.ingresos || 0;
+        }
+      }
+
+      // Crear clave única basada en año y período EXACTO
+      // Si dos pagos tienen el mismo año y exactamente el mismo periodoPago, son duplicados
+      const clave = `${pago.año}-${periodoExacto}`;
       
-      {usuarioSeleccionado && (
-        <div className="usuario-info-anexo2">
-          <div className="info-item">
-            <span className="label">Cédula:</span>
-            <span className="value">{usuarioSeleccionado.documento}</span>
-          </div>
-          <div className="info-item">
-            <span className="label">Nombre:</span>
-            <span className="value">{usuarioSeleccionado.nombre}</span>
-          </div>
-        </div>
-      )}
+      if (!vistosMap.has(clave)) {
+        vistosMap.set(clave, {
+          indice: index,
+          año: pago.año,
+          periodo: pago.periodoPago,
+          valorMesada: valorMesada
+        });
+        pagosUnicos.push(pago);
+        console.log(`✅ Pago único agregado: ${pago.año} - "${periodoExacto}" - $${valorMesada.toLocaleString()}`);
+      } else {
+        const original = vistosMap.get(clave);
+        duplicadosEliminados.push({
+          original: `Índice ${original.indice}: ${original.año} - "${original.periodo}" ($${original.valorMesada.toLocaleString()})`,
+          duplicado: `Índice ${index}: ${pago.año} - "${pago.periodoPago}" ($${valorMesada.toLocaleString()})`
+        });
+        console.log(`� DUPLICADO DETECTADO:`);
+        console.log(`   Período duplicado: "${periodoExacto}"`);
+        console.log(`   Original (mantenido): Índice ${original.indice} - $${original.valorMesada.toLocaleString()}`);
+        console.log(`   Duplicado (eliminado): Índice ${index} - $${valorMesada.toLocaleString()}`);
+      }
+    });
+
+    if (pagos.length !== pagosUnicos.length) {
+      console.log(`📊 Deduplicación completada: ${pagos.length} → ${pagosUnicos.length} pagos únicos`);
+      console.log(`🗑️ Eliminados ${pagos.length - pagosUnicos.length} duplicados`);
       
-      <TablaProyeccionPrincipal 
-        datosConProyeccion={datosConProyeccionTabla1}
-        {...calculationUtils}
-      />
+      // Mostrar detalles de los duplicados eliminados
+      console.log('📋 RESUMEN DE DUPLICADOS ELIMINADOS:');
+      duplicadosEliminados.forEach((dup, idx) => {
+        console.log(`  ${idx + 1}. Mantenido: ${dup.original}`);
+        console.log(`     Eliminado: ${dup.duplicado}`);
+      });
+      
+      // Agrupar por año para análisis
+      const porAño = {};
+      pagosUnicos.forEach(pago => {
+        if (!porAño[pago.año]) porAño[pago.año] = 0;
+        porAño[pago.año]++;
+      });
+      
+      console.log('📈 Pagos únicos por año después de deduplicación:');
+      Object.keys(porAño).sort().forEach(año => {
+        console.log(`  ${año}: ${porAño[año]} pagos`);
+      });
+      
+      // Mostrar algunos ejemplos de períodos únicos mantenidos
+      console.log('📝 Ejemplos de períodos únicos mantenidos:');
+      pagosUnicos.slice(0, 10).forEach((pago, idx) => {
+        console.log(`  ${idx + 1}. ${pago.año} - "${pago.periodoPago}"`);
+      });
+    } else {
+      console.log('✅ No se encontraron duplicados - todos los períodos son únicos');
+    }
 
-      <TablaComparticionMesada 
-        datosConProyeccion={datosConProyeccionTabla1}
-        pagosFinales={pagosFinales}
-      />
-
-      <TablaProyeccionContinuada 
-        datosConProyeccion={datosConProyeccionTabla3}
-        datosTabla1={datosConProyeccionTabla1}
-        {...calculationUtils}
-      />
-
-      <NotaReajuste 
-        pensionesUnicas={pensionesUnicas}
-        obtenerPagoEnero={calculationUtils.obtenerPagoEnero}
-        formatearPagoReal={formatearPagoReal}
-      />
-    </div>
-  );
-};
-
-export default Anexo2;
+    return pagosUnicos;
   };
 
   // Aplicar deduplicación y limitación de mesadas por año
